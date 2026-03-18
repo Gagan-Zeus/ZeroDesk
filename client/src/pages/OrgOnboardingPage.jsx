@@ -43,31 +43,38 @@ export default function OrgOnboardingPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-brand-50 to-white px-4">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-8 space-y-6">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-brand-900">Your Organization</h1>
-          <p className="text-gray-500 mt-2 text-sm">Create a new workspace or join an existing one</p>
-        </div>
-
-        {mode === 'choose' && (
-          <div className="space-y-3">
-            <button
-              onClick={() => setMode('create')}
-              className="w-full px-4 py-4 border-2 border-brand-500 rounded-xl hover:bg-brand-50 transition text-left"
-            >
-              <div className="font-semibold text-brand-900">Create Organization</div>
-              <div className="text-sm text-gray-500 mt-1">Start a new workspace and invite your team</div>
-            </button>
-            <button
-              onClick={() => setMode('join')}
-              className="w-full px-4 py-4 border-2 border-gray-200 rounded-xl hover:border-brand-300 hover:bg-brand-50 transition text-left"
-            >
-              <div className="font-semibold text-gray-900">Join Organization</div>
-              <div className="text-sm text-gray-500 mt-1">Enter an invite code to join an existing workspace</div>
-            </button>
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-brand-50 to-white">
+      <div className="flex-1 flex items-center justify-center px-4">
+        <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-8 space-y-6">
+          <div className="text-center">
+            <div className="flex items-center justify-center gap-2 mb-4">
+              <div className="w-9 h-9 bg-brand-600 rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-lg">Z</span>
+              </div>
+              <span className="text-xl font-bold text-brand-900">ZeroDesk</span>
+            </div>
+            <h1 className="text-2xl font-bold text-brand-900">Your Organization</h1>
+            <p className="text-gray-500 mt-2 text-sm">Create a new workspace or join an existing one</p>
           </div>
-        )}
+
+          {mode === 'choose' && (
+            <div className="space-y-3">
+              <button
+                onClick={() => setMode('create')}
+                className="w-full px-4 py-4 border-2 border-brand-500 rounded-xl hover:bg-brand-50 transition text-left"
+              >
+                <div className="font-semibold text-brand-900">Create Organization</div>
+                <div className="text-sm text-gray-500 mt-1">Start a new workspace and invite your team</div>
+              </button>
+              <button
+                onClick={() => setMode('join')}
+                className="w-full px-4 py-4 border-2 border-gray-200 rounded-xl hover:border-brand-300 hover:bg-brand-50 transition text-left"
+              >
+                <div className="font-semibold text-gray-900">Join Organization</div>
+                <div className="text-sm text-gray-500 mt-1">Enter an invite code to join an existing workspace</div>
+              </button>
+            </div>
+          )}
 
         {mode === 'create' && (
           <form onSubmit={handleCreate} className="space-y-4">
@@ -117,5 +124,19 @@ export default function OrgOnboardingPage() {
         )}
       </div>
     </div>
+
+    {/* Footer */}
+    <footer className="border-t border-gray-100 bg-white py-6">
+      <div className="max-w-6xl mx-auto px-6 flex items-center justify-between text-sm text-gray-400">
+        <span>© 2026 ZeroDesk. All rights reserved.</span>
+        <div className="flex items-center gap-2">
+          <div className="w-5 h-5 bg-brand-600 rounded flex items-center justify-center">
+            <span className="text-white font-bold text-[10px]">Z</span>
+          </div>
+          <span className="font-medium text-gray-500">ZeroDesk</span>
+        </div>
+      </div>
+    </footer>
+  </div>
   );
 }

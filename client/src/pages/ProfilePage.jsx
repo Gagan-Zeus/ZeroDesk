@@ -187,6 +187,14 @@ export default function ProfilePage() {
       toast.error('Password must be at least 8 characters');
       return;
     }
+    if (!/[A-Z]/.test(newPassword)) {
+      toast.error('Password must contain an uppercase letter');
+      return;
+    }
+    if (!/[0-9]/.test(newPassword)) {
+      toast.error('Password must contain a number');
+      return;
+    }
     
     setChangingPassword(true);
     try {
@@ -444,6 +452,9 @@ export default function ProfilePage() {
                           className={inputClass}
                           placeholder="Enter new password"
                         />
+                        <p className="mt-1 text-xs text-gray-500">
+                          Must be at least 8 characters with an uppercase letter and a number
+                        </p>
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Confirm New Password</label>

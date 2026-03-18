@@ -545,7 +545,7 @@ export default function UnifiedLanding({ showAuth: initialShowAuth = false }) {
       {/* Footer */}
       <footer className={`border-t border-gray-100 py-8 transition-all duration-500 ${showAuth ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
         <div className="max-w-6xl mx-auto px-6 flex items-center justify-between text-sm text-gray-400">
-          <span>© 2025 ZeroDesk. All rights reserved.</span>
+          <span>© 2026 ZeroDesk. All rights reserved.</span>
           <div className="flex items-center gap-2">
             <div className="w-5 h-5 bg-brand-600 rounded flex items-center justify-center">
               <span className="text-white font-bold text-[10px]">Z</span>
