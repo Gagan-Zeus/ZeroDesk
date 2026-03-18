@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const features = [
   {
@@ -35,6 +36,15 @@ const features = [
 
 export default function LandingPage() {
   const navigate = useNavigate();
+  const { isAuthenticated, hasOrganization } = useAuth();
+
+  const handleAuthClick = () => {
+    if (isAuthenticated && hasOrganization) {
+      navigate('/dashboard');
+    } else {
+      navigate('/auth');
+    }
+  };
 
   return (
     <div className="min-h-screen bg-white">
@@ -49,13 +59,13 @@ export default function LandingPage() {
           </div>
           <div className="flex items-center gap-3">
             <button
-              onClick={() => navigate('/auth')}
+              onClick={handleAuthClick}
               className="px-5 py-2 text-sm font-medium text-gray-700 hover:text-brand-600 transition"
             >
               Sign In
             </button>
             <button
-              onClick={() => navigate('/auth')}
+              onClick={handleAuthClick}
               className="px-5 py-2 text-sm font-medium bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition"
             >
               Get Started Free
@@ -80,7 +90,7 @@ export default function LandingPage() {
         </p>
         <div className="mt-10 flex items-center justify-center gap-4">
           <button
-            onClick={() => navigate('/auth')}
+            onClick={handleAuthClick}
             className="px-8 py-3.5 bg-brand-600 text-white text-base font-semibold rounded-xl hover:bg-brand-700 transition shadow-lg shadow-brand-600/25"
           >
             Start for Free →
@@ -155,7 +165,7 @@ export default function LandingPage() {
             Join teams already using ZeroDesk to streamline their workflow with secure, isolated workspaces.
           </p>
           <button
-            onClick={() => navigate('/auth')}
+            onClick={handleAuthClick}
             className="px-8 py-3.5 bg-white text-brand-900 font-semibold rounded-xl hover:bg-brand-50 transition shadow-lg"
           >
             Get Started Free →

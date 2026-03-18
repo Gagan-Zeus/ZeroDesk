@@ -41,6 +41,11 @@ export default function DashboardPage() {
     return () => clearTimeout(timer);
   }, []);
 
+  const navigateWithTransition = (path) => {
+    setIsVisible(false);
+    setTimeout(() => navigate(path), 200);
+  };
+
   const initials = (name) =>
     (name || 'U')
       .split(' ')
@@ -156,15 +161,18 @@ export default function DashboardPage() {
       {/* Header */}
       <header className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="max-w-[1800px] mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <button
+            onClick={() => navigateWithTransition('/')}
+            className="flex items-center gap-3 hover:opacity-80 transition"
+          >
             <div className="w-9 h-9 bg-brand-600 rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-lg">Z</span>
             </div>
-            <div>
+            <div className="text-left">
               <h1 className="text-xl font-bold text-brand-900">ZeroDesk</h1>
               {org && <p className="text-xs text-gray-500">{org.name}</p>}
             </div>
-          </div>
+          </button>
           <div className="flex items-center gap-3">
             {/* Role Badge */}
             <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${

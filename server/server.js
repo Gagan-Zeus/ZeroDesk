@@ -1,4 +1,8 @@
 require('dotenv').config();
+const dns = require('dns');
+// Force IPv4 to avoid EHOSTUNREACH on IPv6-incompatible networks
+dns.setDefaultResultOrder('ipv4first');
+
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');

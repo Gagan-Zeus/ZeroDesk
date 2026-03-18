@@ -55,7 +55,7 @@ export default function UnifiedLanding({ showAuth: initialShowAuth = false }) {
   const [githubData, setGithubData] = useState({});
   const [animating, setAnimating] = useState(false);
 
-  const { setToken, fetchUser } = useAuth();
+  const { setToken, fetchUser, isAuthenticated, hasOrganization } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
@@ -92,6 +92,10 @@ export default function UnifiedLanding({ showAuth: initialShowAuth = false }) {
   }, [resendCooldown]);
 
   const openAuth = () => {
+    if (isAuthenticated && hasOrganization) {
+      navigate('/dashboard');
+      return;
+    }
     setIsClosing(false);
     setShowAuth(true);
   };
