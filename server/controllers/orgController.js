@@ -203,6 +203,68 @@ const getOrgMembers = async (req, res, next) => {
   }
 };
 
+// PUT /api/org/member/:userId/role — Promote/demote member (OWNER only)
+const updateMemberRole = async (req, res, next) => {
+  try {
+    const { role } = req.body;
+    const targetUserId = req.params.userId;
+    const orgId = req.user.currentOrganizationId;
+
+    if (!orgId) {
+      return res.status(400).json({ message: 'No organization selected.' });
+    }
+
+    // Verify requester is OWNER
+    const org = await Organization.findById(orgId);
+    if (!org) {
+      return res.status(404).json({ message: 'Organization not found.' });
+    }
+
+    const requesterMember = org.members.find(
+      (m) => m.userId.toString() === req.user._id.toString()
+    );
+    if (!requesterMember || requesterMember.role !== 'OWNER') {
+      return res.status(403).json({ message: 'Only the owner can change member roles.' });
+    }
+
+    // Cannot change own role or promote to OWNER
+    if (targetUserId === req.user._id.toString()) {
+      return res.status(400).json({ message: 'Cannot change your own role.' });
+    }
+    if (role === 'OWNER') {
+      return res.status(400).json({ message: 'Cannot promote to owner.' });
+    }
+    if (!['ADMIN', 'MEMBER'].includes(role)) {
+      return res.status(400).json({ message: 'Invalid role. Must be ADMIN or MEMBER.' });
+    }
+
+    // Update in Organization
+    const targetMember = org.members.find((m) => m.userId.toString() === targetUserId);
+    if (!targetMember) {
+      return res.status(404).json({ message: 'Member not found in organization.' });
+    }
+
+    await Organization.updateOne(
+      { _id: orgId, 'members.userId': targetUserId },
+      { $set: { 'members.$.role': role } }
+    );
+
+    // Update in User
+    await User.updateOne(
+      { _id: targetUserId, 'organizations.orgId': orgId },
+      { $set: { 'organizations.$.role': role } }
+    );
+
+    return res.json({ message: `Member role updated to ${role}.` });
+  } catch (err) {
+    next(err);
+  }
+};
+
+const updateMemberRoleValidation = [
+  body('role').isIn(['ADMIN', 'MEMBER']).withMessage('Role must be ADMIN or MEMBER.'),
+];
+
 // Validation rules
 const createOrgValidation = [
   body('name').trim().notEmpty().withMessage('Organization name is required.').isLength({ max: 120 }),

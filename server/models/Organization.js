@@ -22,7 +22,7 @@ const organizationSchema = new mongoose.Schema(
     members: [
       {
         userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-        role: { type: String, enum: ['OWNER', 'MEMBER'], default: 'MEMBER' },
+        role: { type: String, enum: ['OWNER', 'ADMIN', 'MEMBER'], default: 'MEMBER' },
         roleTitle: { type: String, default: '', maxlength: 50 },
         joinedAt: { type: Date, default: Date.now },
       },
