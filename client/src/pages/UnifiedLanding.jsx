@@ -48,6 +48,7 @@ export default function UnifiedLanding({ showAuth: initialShowAuth = false }) {
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [orgName, setOrgName] = useState('');
   const [orgCode, setOrgCode] = useState('');
+  const [roleTitle, setRoleTitle] = useState('');
   const [orgMode, setOrgMode] = useState('choose');
   const [loading, setLoading] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
@@ -206,14 +207,14 @@ export default function UnifiedLanding({ showAuth: initialShowAuth = false }) {
 
   const handleCreateOrg = async (e) => {
     e.preventDefault(); setLoading(true);
-    try { const { data } = await createOrg(orgName); toast.success(`Created "${data.organization.name}"!`); await fetchUser(); navigate('/dashboard'); }
+    try { const { data } = await createOrg(orgName, roleTitle || 'Owner'); toast.success(`Created "${data.organization.name}"!`); await fetchUser(); navigate('/dashboard'); }
     catch (err) { toast.error(err.response?.data?.message || 'Failed'); }
     finally { setLoading(false); }
   };
 
   const handleJoinOrg = async (e) => {
     e.preventDefault(); setLoading(true);
-    try { const { data } = await joinOrg(orgCode); toast.success(`Joined "${data.organization.name}"!`); await fetchUser(); navigate('/dashboard'); }
+    try { const { data } = await joinOrg(orgCode, roleTitle); toast.success(`Joined "${data.organization.name}"!`); await fetchUser(); navigate('/dashboard'); }
     catch (err) { toast.error(err.response?.data?.message || 'Invalid code'); }
     finally { setLoading(false); }
   };
@@ -365,6 +366,7 @@ export default function UnifiedLanding({ showAuth: initialShowAuth = false }) {
             {orgMode === 'create' && (
               <form onSubmit={handleCreateOrg} className="space-y-4">
                 <input type="text" placeholder="Organization Name" value={orgName} onChange={(e) => setOrgName(e.target.value)} required maxLength={120} autoFocus className={inputClass} />
+                <input type="text" placeholder="Your Role (e.g., CEO, Founder)" value={roleTitle} onChange={(e) => setRoleTitle(e.target.value)} className={inputClass} />
                 <button type="submit" disabled={loading} className={btnClass}>{loading ? 'Creating...' : 'Create Organization'}</button>
                 <BackButton onClick={() => setOrgMode('choose')} />
               </form>
@@ -372,6 +374,7 @@ export default function UnifiedLanding({ showAuth: initialShowAuth = false }) {
             {orgMode === 'join' && (
               <form onSubmit={handleJoinOrg} className="space-y-4">
                 <input type="text" placeholder="Enter Code (e.g., A1B2C3D4)" value={orgCode} onChange={(e) => setOrgCode(e.target.value.toUpperCase())} required autoFocus className={`${inputClass} font-mono tracking-widest text-center uppercase`} />
+                <input type="text" placeholder="Your Role (e.g., Developer, Designer)" value={roleTitle} onChange={(e) => setRoleTitle(e.target.value)} required className={inputClass} />
                 <button type="submit" disabled={loading} className={btnClass}>{loading ? 'Joining...' : 'Join Organization'}</button>
                 <BackButton onClick={() => setOrgMode('choose')} />
               </form>

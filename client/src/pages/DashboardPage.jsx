@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getTasks, createTask, updateTask, deleteTask, getOrg } from '../services/authService';
@@ -12,118 +12,8 @@ const STATUS_COLORS = {
   DONE: 'bg-green-100 text-green-800',
 };
 
-function ProfileMenu({ user, org, onLogout, onSwitchOrg }) {
-  const [open, setOpen] = useState(false);
-  const menuRef = useRef(null);
-
-  useEffect(() => {
-    const handler = (e) => {
-      if (menuRef.current && !menuRef.current.contains(e.target)) setOpen(false);
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, []);
-
-  const copyCode = () => {
-    if (org?.code) {
-      navigator.clipboard.writeText(org.code);
-      toast.success('Organization code copied!');
-    }
-  };
-
-  const initials = (user?.name || 'U')
-    .split(' ')
-    .map((w) => w[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2);
-
-  const currentRole = user?.organizations?.find(
-    (o) => o.orgId?.toString() === user.currentOrganizationId?.toString()
-  )?.role;
-
-  return (
-    <div className="relative" ref={menuRef}>
-      <button
-        onClick={() => setOpen(!open)}
-        className="flex items-center gap-2 focus:outline-none"
-      >
-        {user?.avatar ? (
-          <img src={user.avatar} alt="" className="w-9 h-9 rounded-full border-2 border-brand-200" />
-        ) : (
-          <div className="w-9 h-9 rounded-full bg-brand-600 text-white flex items-center justify-center text-sm font-bold">
-            {initials}
-          </div>
-        )}
-        <svg className={`w-4 h-4 text-gray-500 transition ${open ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-        </svg>
-      </button>
-
-      {open && (
-        <div className="absolute right-0 mt-2 w-72 bg-white rounded-xl shadow-xl border border-gray-200 py-2 z-50">
-          {/* User info */}
-          <div className="px-4 py-3 border-b border-gray-100">
-            <p className="font-semibold text-gray-900 text-sm">{user?.name}</p>
-            <p className="text-xs text-gray-500 truncate">{user?.email}</p>
-            <span className="inline-block mt-1 text-[10px] px-2 py-0.5 bg-brand-50 text-brand-600 rounded-full font-medium uppercase">
-              {user?.authProvider} account
-            </span>
-          </div>
-
-          {/* Organization info */}
-          {org && (
-            <div className="px-4 py-3 border-b border-gray-100">
-              <p className="text-xs text-gray-400 uppercase tracking-wide font-medium mb-1.5">Organization</p>
-              <p className="font-semibold text-gray-900 text-sm">{org.name}</p>
-              <div className="flex items-center justify-between mt-2">
-                <div>
-                  <p className="text-[10px] text-gray-400 uppercase">Invite Code</p>
-                  <p className="font-mono text-sm font-bold text-brand-600 tracking-widest">{org.code}</p>
-                </div>
-                <button
-                  onClick={copyCode}
-                  className="px-3 py-1.5 text-xs bg-brand-50 text-brand-600 rounded-lg hover:bg-brand-100 transition font-medium"
-                >
-                  Copy Code
-                </button>
-              </div>
-              {currentRole && (
-                <span className={`inline-block mt-2 text-[10px] px-2 py-0.5 rounded-full font-medium uppercase ${
-                  currentRole === 'OWNER' ? 'bg-amber-50 text-amber-700' : 'bg-gray-100 text-gray-600'
-                }`}>
-                  {currentRole}
-                </span>
-              )}
-              {org.members && (
-                <p className="text-xs text-gray-400 mt-1">{org.members.length} member{org.members.length !== 1 ? 's' : ''}</p>
-              )}
-            </div>
-          )}
-
-          {/* Actions */}
-          <div className="py-1">
-            <button
-              onClick={() => { setOpen(false); onSwitchOrg(); }}
-              className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition flex items-center gap-2"
-            >
-              <span>🏢</span> Switch / Join Organization
-            </button>
-            <button
-              onClick={() => { setOpen(false); onLogout(); }}
-              className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition flex items-center gap-2"
-            >
-              <span>🚪</span> Sign Out
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
 export default function DashboardPage() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [tasks, setTasks] = useState([]);
   const [org, setOrg] = useState(null);
@@ -131,6 +21,20 @@ export default function DashboardPage() {
   const [description, setDescription] = useState('');
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
+
+  // Entry animation
+  useEffect(() => {
+    const timer = setTimeout(() => setIsVisible(true), 10);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const initials = (user?.name || 'U')
+    .split(' ')
+    .map((w) => w[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
 
   const fetchTasks = async () => {
     try {
@@ -195,7 +99,7 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className={`min-h-screen bg-gray-50 transition-opacity duration-300 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
       {/* Header */}
       <header className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
@@ -203,12 +107,20 @@ export default function DashboardPage() {
             <h1 className="text-xl font-bold text-brand-900">ZeroDesk</h1>
             {org && <p className="text-xs text-gray-500">{org.name}</p>}
           </div>
-          <ProfileMenu
-            user={user}
-            org={org}
-            onLogout={logout}
-            onSwitchOrg={() => navigate('/auth?step=org')}
-          />
+          {/* Profile Icon - Click to open profile page */}
+          <button
+            onClick={() => navigate('/profile')}
+            className="focus:outline-none hover:opacity-80 transition hover:scale-105"
+            title="Profile Settings"
+          >
+            {user?.avatar ? (
+              <img src={user.avatar} alt="" className="w-10 h-10 rounded-full border-2 border-brand-200" />
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-brand-600 text-white flex items-center justify-center text-sm font-bold">
+                {initials}
+              </div>
+            )}
+          </button>
         </div>
       </header>
 
@@ -220,27 +132,27 @@ export default function DashboardPage() {
             <div className="space-y-3">
               <input
                 type="text"
-              placeholder="Task title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none"
-            />
-            <textarea
-              placeholder="Description (optional)"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              rows={2}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none resize-none"
-            />
-            <button
-              type="submit"
-              disabled={creating}
-              className="px-6 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition font-medium disabled:opacity-50"
-            >
-              {creating ? 'Creating...' : 'Add Task'}
-            </button>
-          </div>
+                placeholder="Task title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                required
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none"
+              />
+              <textarea
+                placeholder="Description (optional)"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                rows={2}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none resize-none"
+              />
+              <button
+                type="submit"
+                disabled={creating}
+                className="px-6 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition font-medium disabled:opacity-50"
+              >
+                {creating ? 'Creating...' : 'Add Task'}
+              </button>
+            </div>
           </form>
         </TiltedCard>
 

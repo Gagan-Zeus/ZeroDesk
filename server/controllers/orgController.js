@@ -5,18 +5,18 @@ const User = require('../models/User');
 // POST /api/org/create — Create a new organization
 const createOrg = async (req, res, next) => {
   try {
-    const { name } = req.body;
+    const { name, roleTitle } = req.body;
     const userId = req.user._id;
 
     const org = await Organization.create({
       name,
       createdBy: userId,
-      members: [{ userId, role: 'OWNER' }],
+      members: [{ userId, role: 'OWNER', roleTitle: roleTitle || 'Owner' }],
     });
 
     // Update user with org membership and set as current
     await User.findByIdAndUpdate(userId, {
-      $push: { organizations: { orgId: org._id, role: 'OWNER' } },
+      $push: { organizations: { orgId: org._id, role: 'OWNER', roleTitle: roleTitle || 'Owner' } },
       currentOrganizationId: org._id,
     });
 
@@ -27,6 +27,7 @@ const createOrg = async (req, res, next) => {
         name: org.name,
         code: org.code,
         role: 'OWNER',
+        roleTitle: roleTitle || 'Owner',
       },
     });
   } catch (err) {
@@ -37,7 +38,7 @@ const createOrg = async (req, res, next) => {
 // POST /api/org/join — Join an organization using code
 const joinOrg = async (req, res, next) => {
   try {
-    const { code } = req.body;
+    const { code, roleTitle } = req.body;
     const userId = req.user._id;
 
     const org = await Organization.findOne({ code: code.toUpperCase() });
@@ -56,20 +57,49 @@ const joinOrg = async (req, res, next) => {
       });
     }
 
-    // Add user to org
-    org.members.push({ userId, role: 'MEMBER' });
+    // Add user to org with roleTitle
+    org.members.push({ userId, role: 'MEMBER', roleTitle: roleTitle || '' });
     await org.save();
 
     // Update user
     await User.findByIdAndUpdate(userId, {
-      $push: { organizations: { orgId: org._id, role: 'MEMBER' } },
+      $push: { organizations: { orgId: org._id, role: 'MEMBER', roleTitle: roleTitle || '' } },
       currentOrganizationId: org._id,
     });
 
     return res.json({
       message: 'Joined organization successfully.',
-      organization: { id: org._id, name: org.name, code: org.code, role: 'MEMBER' },
+      organization: { id: org._id, name: org.name, code: org.code, role: 'MEMBER', roleTitle: roleTitle || '' },
     });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// PUT /api/org/role — Update user's role title in current organization
+const updateRoleTitle = async (req, res, next) => {
+  try {
+    const { roleTitle } = req.body;
+    const userId = req.user._id;
+    const orgId = req.user.currentOrganizationId;
+
+    if (!orgId) {
+      return res.status(400).json({ message: 'No organization selected.' });
+    }
+
+    // Update in Organization
+    await Organization.updateOne(
+      { _id: orgId, 'members.userId': userId },
+      { $set: { 'members.$.roleTitle': roleTitle || '' } }
+    );
+
+    // Update in User
+    await User.updateOne(
+      { _id: userId, 'organizations.orgId': orgId },
+      { $set: { 'organizations.$.roleTitle': roleTitle || '' } }
+    );
+
+    return res.json({ message: 'Role updated successfully.', roleTitle: roleTitle || '' });
   } catch (err) {
     next(err);
   }
@@ -84,6 +114,7 @@ const listOrgs = async (req, res, next) => {
       name: o.orgId.name,
       code: o.orgId.code,
       role: o.role,
+      roleTitle: o.roleTitle || '',
     }));
     return res.json({ organizations: orgs });
   } catch (err) {
@@ -134,6 +165,44 @@ const getOrg = async (req, res, next) => {
   }
 };
 
+// GET /api/org/members — Get members of current organization
+const getOrgMembers = async (req, res, next) => {
+  try {
+    const orgId = req.user.currentOrganizationId;
+    if (!orgId) {
+      return res.status(400).json({ message: 'No organization selected.' });
+    }
+
+    const org = await Organization.findById(orgId).populate('members.userId', 'name email avatar');
+    if (!org) {
+      return res.status(404).json({ message: 'Organization not found.' });
+    }
+
+    // Ensure user is a member
+    const isMember = org.members.some(
+      (m) => m.userId._id.toString() === req.user._id.toString()
+    );
+    if (!isMember) {
+      return res.status(403).json({ message: 'Access denied.' });
+    }
+
+    const members = org.members.map((m) => ({
+      _id: m.userId._id,
+      name: m.userId.name,
+      email: m.userId.email,
+      avatar: m.userId.avatar,
+      role: m.role,
+      roleTitle: m.roleTitle || '',
+      orgName: org.name,
+      orgCode: org.code,
+    }));
+
+    return res.json({ members });
+  } catch (err) {
+    next(err);
+  }
+};
+
 // Validation rules
 const createOrgValidation = [
   body('name').trim().notEmpty().withMessage('Organization name is required.').isLength({ max: 120 }),
@@ -141,6 +210,11 @@ const createOrgValidation = [
 
 const joinOrgValidation = [
   body('code').trim().notEmpty().withMessage('Organization code is required.'),
+  body('roleTitle').optional().trim().isLength({ max: 50 }),
+];
+
+const updateRoleTitleValidation = [
+  body('roleTitle').trim().isLength({ max: 50 }).withMessage('Role title must be 50 characters or less.'),
 ];
 
 const selectOrgValidation = [
@@ -153,7 +227,10 @@ module.exports = {
   listOrgs,
   selectOrg,
   getOrg,
+  getOrgMembers,
+  updateRoleTitle,
   createOrgValidation,
   joinOrgValidation,
   selectOrgValidation,
+  updateRoleTitleValidation,
 };

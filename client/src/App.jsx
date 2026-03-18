@@ -5,6 +5,7 @@ import { FullGuard } from './guards/RouteGuards';
 
 import UnifiedLanding from './pages/UnifiedLanding';
 import DashboardPage from './pages/DashboardPage';
+import ProfilePage from './pages/ProfilePage';
 
 export default function App() {
   return (
@@ -19,6 +20,7 @@ export default function App() {
           {/* Fully protected — auth + OTP + org */}
           <Route element={<FullGuard />}>
             <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
           </Route>
 
           {/* Catch-all */}

@@ -11,11 +11,15 @@ const {
   githubCompleteEmail,
   getMe,
   setPassword,
+  updateProfile,
+  changePassword,
   checkEmailValidation,
   registerValidation,
   loginValidation,
   githubEmailValidation,
   setPasswordValidation,
+  updateProfileValidation,
+  changePasswordValidation,
 } = require('../controllers/authController');
 
 // Email flow
@@ -47,5 +51,11 @@ router.get('/me', authenticate, getMe);
 
 // Set password (for OAuth users)
 router.post('/set-password', authenticate, setPasswordValidation, validate, setPassword);
+
+// Update profile
+router.put('/profile', authenticate, updateProfileValidation, validate, updateProfile);
+
+// Change password
+router.put('/password', authenticate, changePasswordValidation, validate, changePassword);
 
 module.exports = router;

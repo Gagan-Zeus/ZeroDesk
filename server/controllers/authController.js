@@ -172,6 +172,65 @@ const getMe = async (req, res) => {
   });
 };
 
+// PUT /api/auth/profile — Update profile (name, avatar)
+const updateProfile = async (req, res, next) => {
+  try {
+    const { name, avatar } = req.body;
+    const updates = {};
+    
+    if (name !== undefined) updates.name = name.trim();
+    if (avatar !== undefined) updates.avatar = avatar;
+    
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({ message: 'No fields to update.' });
+    }
+    
+    const user = await User.findByIdAndUpdate(req.user._id, updates, { new: true });
+    return res.json({ message: 'Profile updated.', user });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// PUT /api/auth/password — Change password
+const changePassword = async (req, res, next) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const user = await User.findById(req.user._id).select('+password');
+    
+    if (!user.password) {
+      return res.status(400).json({ message: 'No password set for this account.' });
+    }
+    
+    const isMatch = await user.comparePassword(currentPassword);
+    if (!isMatch) {
+      return res.status(401).json({ message: 'Current password is incorrect.' });
+    }
+    
+    user.password = newPassword;
+    await user.save();
+    
+    return res.json({ message: 'Password changed successfully.' });
+  } catch (err) {
+    next(err);
+  }
+};
+
+const updateProfileValidation = [
+  body('name').optional().trim().isLength({ min: 1 }).withMessage('Name cannot be empty.'),
+];
+
+const changePasswordValidation = [
+  body('currentPassword').notEmpty().withMessage('Current password is required.'),
+  body('newPassword')
+    .isLength({ min: 8 })
+    .withMessage('New password must be at least 8 characters.')
+    .matches(/[A-Z]/)
+    .withMessage('New password must contain an uppercase letter.')
+    .matches(/[0-9]/)
+    .withMessage('New password must contain a number.'),
+];
+
 // POST /api/auth/set-password — Set password for OAuth users
 const setPassword = async (req, res, next) => {
   try {
@@ -235,9 +294,13 @@ module.exports = {
   githubCompleteEmail,
   getMe,
   setPassword,
+  updateProfile,
+  changePassword,
   checkEmailValidation,
   registerValidation,
   loginValidation,
   githubEmailValidation,
   setPasswordValidation,
+  updateProfileValidation,
+  changePasswordValidation,
 };
