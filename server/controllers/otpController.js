@@ -24,7 +24,7 @@ const verifyOtpHandler = async (req, res, next) => {
     }
 
     // Mark user as OTP verified
-    const user = await User.findById(req.user._id);
+    const user = await User.findById(req.user._id).select('+password');
     user.isOtpVerified = true;
     await user.save();
 
@@ -43,6 +43,7 @@ const verifyOtpHandler = async (req, res, next) => {
         name: user.name,
         email: user.email,
         isOtpVerified: true,
+        hasPassword: !!user.password,
         currentOrganizationId: user.currentOrganizationId,
         organizations: user.organizations,
       },

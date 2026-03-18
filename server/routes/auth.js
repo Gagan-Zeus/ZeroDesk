@@ -10,10 +10,12 @@ const {
   oauthCallback,
   githubCompleteEmail,
   getMe,
+  setPassword,
   checkEmailValidation,
   registerValidation,
   loginValidation,
   githubEmailValidation,
+  setPasswordValidation,
 } = require('../controllers/authController');
 
 // Email flow
@@ -42,5 +44,8 @@ router.post('/github/complete-email', authRateLimiter, githubEmailValidation, va
 
 // Get current user (requires auth)
 router.get('/me', authenticate, getMe);
+
+// Set password (for OAuth users)
+router.post('/set-password', authenticate, setPasswordValidation, validate, setPassword);
 
 module.exports = router;

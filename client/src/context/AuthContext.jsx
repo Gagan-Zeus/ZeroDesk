@@ -12,21 +12,22 @@ export const useAuth = () => {
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-
-  const token = localStorage.getItem('zerodesk_token');
+  const [token, setTokenState] = useState(() => localStorage.getItem('zerodesk_token'));
 
   const fetchUser = useCallback(async () => {
+    const currentToken = localStorage.getItem('zerodesk_token');
+    if (!currentToken) {
+      setUser(null);
+      setLoading(false);
+      return;
+    }
     try {
-      if (!token) {
-        setUser(null);
-        setLoading(false);
-        return;
-      }
       const { data } = await getMe();
       setUser(data.user);
     } catch {
       setUser(null);
       localStorage.removeItem('zerodesk_token');
+      setTokenState(null);
     } finally {
       setLoading(false);
     }
@@ -42,10 +43,12 @@ export function AuthProvider({ children }) {
     } else {
       localStorage.removeItem('zerodesk_token');
     }
+    setTokenState(newToken); // triggers re-render → fetchUser
   };
 
   const logout = () => {
     localStorage.removeItem('zerodesk_token');
+    setTokenState(null);
     setUser(null);
   };
 

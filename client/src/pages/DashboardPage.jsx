@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { getTasks, createTask, updateTask, deleteTask } from '../services/authService';
+import { getTasks, createTask, updateTask, deleteTask, getOrg } from '../services/authService';
 import toast from 'react-hot-toast';
 
 const STATUS_LABELS = { TODO: 'To Do', IN_PROGRESS: 'In Progress', DONE: 'Done' };
@@ -10,9 +11,121 @@ const STATUS_COLORS = {
   DONE: 'bg-green-100 text-green-800',
 };
 
+function ProfileMenu({ user, org, onLogout, onSwitchOrg }) {
+  const [open, setOpen] = useState(false);
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const copyCode = () => {
+    if (org?.code) {
+      navigator.clipboard.writeText(org.code);
+      toast.success('Organization code copied!');
+    }
+  };
+
+  const initials = (user?.name || 'U')
+    .split(' ')
+    .map((w) => w[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
+
+  const currentRole = user?.organizations?.find(
+    (o) => o.orgId?.toString() === user.currentOrganizationId?.toString()
+  )?.role;
+
+  return (
+    <div className="relative" ref={menuRef}>
+      <button
+        onClick={() => setOpen(!open)}
+        className="flex items-center gap-2 focus:outline-none"
+      >
+        {user?.avatar ? (
+          <img src={user.avatar} alt="" className="w-9 h-9 rounded-full border-2 border-brand-200" />
+        ) : (
+          <div className="w-9 h-9 rounded-full bg-brand-600 text-white flex items-center justify-center text-sm font-bold">
+            {initials}
+          </div>
+        )}
+        <svg className={`w-4 h-4 text-gray-500 transition ${open ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
+      {open && (
+        <div className="absolute right-0 mt-2 w-72 bg-white rounded-xl shadow-xl border border-gray-200 py-2 z-50">
+          {/* User info */}
+          <div className="px-4 py-3 border-b border-gray-100">
+            <p className="font-semibold text-gray-900 text-sm">{user?.name}</p>
+            <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+            <span className="inline-block mt-1 text-[10px] px-2 py-0.5 bg-brand-50 text-brand-600 rounded-full font-medium uppercase">
+              {user?.authProvider} account
+            </span>
+          </div>
+
+          {/* Organization info */}
+          {org && (
+            <div className="px-4 py-3 border-b border-gray-100">
+              <p className="text-xs text-gray-400 uppercase tracking-wide font-medium mb-1.5">Organization</p>
+              <p className="font-semibold text-gray-900 text-sm">{org.name}</p>
+              <div className="flex items-center justify-between mt-2">
+                <div>
+                  <p className="text-[10px] text-gray-400 uppercase">Invite Code</p>
+                  <p className="font-mono text-sm font-bold text-brand-600 tracking-widest">{org.code}</p>
+                </div>
+                <button
+                  onClick={copyCode}
+                  className="px-3 py-1.5 text-xs bg-brand-50 text-brand-600 rounded-lg hover:bg-brand-100 transition font-medium"
+                >
+                  Copy Code
+                </button>
+              </div>
+              {currentRole && (
+                <span className={`inline-block mt-2 text-[10px] px-2 py-0.5 rounded-full font-medium uppercase ${
+                  currentRole === 'OWNER' ? 'bg-amber-50 text-amber-700' : 'bg-gray-100 text-gray-600'
+                }`}>
+                  {currentRole}
+                </span>
+              )}
+              {org.members && (
+                <p className="text-xs text-gray-400 mt-1">{org.members.length} member{org.members.length !== 1 ? 's' : ''}</p>
+              )}
+            </div>
+          )}
+
+          {/* Actions */}
+          <div className="py-1">
+            <button
+              onClick={() => { setOpen(false); onSwitchOrg(); }}
+              className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition flex items-center gap-2"
+            >
+              <span>🏢</span> Switch / Join Organization
+            </button>
+            <button
+              onClick={() => { setOpen(false); onLogout(); }}
+              className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition flex items-center gap-2"
+            >
+              <span>🚪</span> Sign Out
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function DashboardPage() {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const [tasks, setTasks] = useState([]);
+  const [org, setOrg] = useState(null);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [loading, setLoading] = useState(true);
@@ -29,8 +142,19 @@ export default function DashboardPage() {
     }
   };
 
+  const fetchOrg = async () => {
+    if (!user?.currentOrganizationId) return;
+    try {
+      const { data } = await getOrg(user.currentOrganizationId);
+      setOrg(data.organization);
+    } catch {
+      // ignore
+    }
+  };
+
   useEffect(() => {
     fetchTasks();
+    fetchOrg();
   }, []);
 
   const handleCreate = async (e) => {
@@ -76,14 +200,14 @@ export default function DashboardPage() {
         <div className="max-w-5xl mx-auto flex items-center justify-between">
           <div>
             <h1 className="text-xl font-bold text-brand-900">ZeroDesk</h1>
-            <p className="text-xs text-gray-500">Welcome, {user?.name}</p>
+            {org && <p className="text-xs text-gray-500">{org.name}</p>}
           </div>
-          <button
-            onClick={logout}
-            className="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
-          >
-            Sign Out
-          </button>
+          <ProfileMenu
+            user={user}
+            org={org}
+            onLogout={logout}
+            onSwitchOrg={() => navigate('/onboarding/org')}
+          />
         </div>
       </header>
 

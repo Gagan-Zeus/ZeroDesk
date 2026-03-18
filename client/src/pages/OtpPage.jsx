@@ -71,7 +71,10 @@ export default function OtpPage() {
       await fetchUser();
       toast.success('Verified!');
 
-      if (data.user.currentOrganizationId) {
+      // If OAuth user without password, prompt to set one
+      if (!data.user.hasPassword) {
+        navigate('/auth/set-password');
+      } else if (data.user.currentOrganizationId) {
         navigate('/dashboard');
       } else {
         navigate('/onboarding/org');

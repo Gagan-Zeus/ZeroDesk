@@ -20,10 +20,6 @@ export default function EmailAuthPage() {
     try {
       const { data } = await checkEmail(email);
       if (data.exists) {
-        if (data.authProvider !== 'local') {
-          toast.error(`This email uses ${data.authProvider} sign-in.`);
-          return;
-        }
         setStep('login');
       } else {
         setStep('register');

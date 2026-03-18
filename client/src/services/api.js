@@ -16,14 +16,17 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Handle 401 responses globally
+// Handle 401 responses globally — only redirect for full-scope requests, not during auth flow
 api.interceptors.response.use(
   (res) => res,
   (err) => {
     if (err.response?.status === 401) {
-      localStorage.removeItem('zerodesk_token');
-      if (window.location.pathname !== '/login') {
-        window.location.href = '/login';
+      const isAuthRoute = ['/auth/', '/otp/'].some((p) => err.config?.url?.includes(p));
+      if (!isAuthRoute) {
+        localStorage.removeItem('zerodesk_token');
+        if (!['/login', '/auth/otp', '/auth/email', '/auth/github-email', '/'].includes(window.location.pathname)) {
+          window.location.href = '/login';
+        }
       }
     }
     return Promise.reject(err);

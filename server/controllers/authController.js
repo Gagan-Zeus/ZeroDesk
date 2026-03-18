@@ -7,8 +7,11 @@ const { createAndSendOtp } = require('../services/otpService');
 const checkEmail = async (req, res, next) => {
   try {
     const { email } = req.body;
-    const user = await User.findOne({ email });
-    return res.json({ exists: !!user, authProvider: user?.authProvider || null });
+    const user = await User.findOne({ email }).select('+password');
+    const exists = !!user;
+    // User exists AND has a password → show login screen; otherwise → show register screen
+    const hasPassword = exists && !!user.password;
+    return res.json({ exists: hasPassword, authProvider: user?.authProvider || null });
   } catch (err) {
     next(err);
   }
@@ -21,7 +24,22 @@ const register = async (req, res, next) => {
 
     const existing = await User.findOne({ email });
     if (existing) {
-      return res.status(409).json({ message: 'Email already registered.' });
+      // If OAuth user exists without a password, let them set one
+      if (!existing.password || existing.authProvider !== 'local') {
+        existing.password = password;
+        if (!existing.name || existing.name === existing.email) existing.name = name;
+        await existing.save();
+
+        const preAuthToken = signPreAuthToken({ userId: existing._id, email: existing.email });
+        await createAndSendOtp(email, existing._id, 'email_verification');
+
+        return res.status(200).json({
+          message: 'Password set. OTP sent to email.',
+          preAuthToken,
+          user: { id: existing._id, name: existing.name, email: existing.email },
+        });
+      }
+      return res.status(409).json({ message: 'Email already registered. Please sign in.' });
     }
 
     const user = await User.create({ name, email, password, authProvider: 'local' });
@@ -50,9 +68,10 @@ const login = async (req, res, next) => {
       return res.status(401).json({ message: 'Invalid email or password.' });
     }
 
-    if (user.authProvider !== 'local') {
+    // OAuth user who never set a password
+    if (!user.password) {
       return res.status(400).json({
-        message: `This account uses ${user.authProvider} sign-in. Please use that method.`,
+        message: 'No password set for this account. Please use "Continue with Email" to create a password, or sign in with ' + user.authProvider + '.',
       });
     }
 
@@ -144,8 +163,43 @@ const githubCompleteEmail = async (req, res, next) => {
 
 // GET /api/auth/me — Get current user
 const getMe = async (req, res) => {
-  return res.json({ user: req.user });
+  const user = await User.findById(req.user._id).select('+password');
+  return res.json({
+    user: {
+      ...req.user.toObject(),
+      hasPassword: !!user.password,
+    },
+  });
 };
+
+// POST /api/auth/set-password — Set password for OAuth users
+const setPassword = async (req, res, next) => {
+  try {
+    const { password } = req.body;
+    const user = await User.findById(req.user._id).select('+password');
+
+    if (user.password) {
+      return res.status(400).json({ message: 'Password already set.' });
+    }
+
+    user.password = password;
+    await user.save();
+
+    return res.json({ message: 'Password set successfully.' });
+  } catch (err) {
+    next(err);
+  }
+};
+
+const setPasswordValidation = [
+  body('password')
+    .isLength({ min: 8 })
+    .withMessage('Password must be at least 8 characters.')
+    .matches(/[A-Z]/)
+    .withMessage('Password must contain an uppercase letter.')
+    .matches(/[0-9]/)
+    .withMessage('Password must contain a number.'),
+];
 
 // Validation rules
 const checkEmailValidation = [body('email').isEmail().withMessage('Valid email is required.')];
@@ -180,8 +234,10 @@ module.exports = {
   oauthCallback,
   githubCompleteEmail,
   getMe,
+  setPassword,
   checkEmailValidation,
   registerValidation,
   loginValidation,
   githubEmailValidation,
+  setPasswordValidation,
 };

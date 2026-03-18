@@ -5,18 +5,9 @@ const Task = require('../models/Task');
 const listTasks = async (req, res, next) => {
   try {
     const orgId = req.organizationId;
-    const userRole = req.user.organizations.find(
-      (o) => o.orgId.toString() === orgId.toString()
-    )?.role;
 
-    let query = { organizationId: orgId };
-
-    // MEMBER can only see their own or assigned tasks
-    if (userRole === 'MEMBER') {
-      query.$or = [{ createdBy: req.user._id }, { assignedTo: req.user._id }];
-    }
-
-    const tasks = await Task.find(query)
+    // All members of the organization can see all org tasks
+    const tasks = await Task.find({ organizationId: orgId })
       .populate('assignedTo', 'name email')
       .populate('createdBy', 'name email')
       .sort({ createdAt: -1 });

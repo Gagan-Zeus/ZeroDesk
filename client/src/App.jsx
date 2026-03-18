@@ -9,6 +9,8 @@ import OtpPage from './pages/OtpPage';
 import GithubEmailPage from './pages/GithubEmailPage';
 import OrgOnboardingPage from './pages/OrgOnboardingPage';
 import DashboardPage from './pages/DashboardPage';
+import LandingPage from './pages/LandingPage';
+import SetPasswordPage from './pages/SetPasswordPage';
 
 export default function App() {
   return (
@@ -16,6 +18,9 @@ export default function App() {
       <AuthProvider>
         <Toaster position="top-right" toastOptions={{ duration: 4000 }} />
         <Routes>
+          {/* Landing page */}
+          <Route path="/" element={<LandingPage />} />
+
           {/* Public / Guest routes */}
           <Route element={<GuestGuard />}>
             <Route path="/login" element={<LoginPage />} />
@@ -28,6 +33,7 @@ export default function App() {
 
           {/* Requires auth + OTP verified */}
           <Route element={<OtpGuard />}>
+            <Route path="/auth/set-password" element={<SetPasswordPage />} />
             <Route path="/onboarding/org" element={<OrgOnboardingPage />} />
           </Route>
 
@@ -37,7 +43,7 @@ export default function App() {
           </Route>
 
           {/* Catch-all */}
-          <Route path="*" element={<Navigate to="/login" replace />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>
