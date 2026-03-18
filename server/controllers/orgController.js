@@ -291,8 +291,10 @@ module.exports = {
   getOrg,
   getOrgMembers,
   updateRoleTitle,
+  updateMemberRole,
   createOrgValidation,
   joinOrgValidation,
   selectOrgValidation,
   updateRoleTitleValidation,
+  updateMemberRoleValidation,
 };

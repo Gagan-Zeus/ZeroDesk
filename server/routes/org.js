@@ -9,10 +9,12 @@ const {
   getOrg,
   getOrgMembers,
   updateRoleTitle,
+  updateMemberRole,
   createOrgValidation,
   joinOrgValidation,
   selectOrgValidation,
   updateRoleTitleValidation,
+  updateMemberRoleValidation,
 } = require('../controllers/orgController');
 
 // All org routes require auth + OTP verified
@@ -24,6 +26,7 @@ router.get('/list', listOrgs);
 router.get('/members', getOrgMembers);
 router.post('/select', selectOrgValidation, validate, selectOrg);
 router.put('/role', updateRoleTitleValidation, validate, updateRoleTitle);
+router.put('/member/:userId/role', updateMemberRoleValidation, validate, updateMemberRole);
 router.get('/:id', getOrg);
 
 module.exports = router;

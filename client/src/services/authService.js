@@ -19,6 +19,7 @@ export const selectOrg = (organizationId) => api.post('/org/select', { organizat
 export const getOrg = (id) => api.get(`/org/${id}`);
 export const getOrgMembers = () => api.get('/org/members');
 export const updateRoleTitle = (roleTitle) => api.put('/org/role', { roleTitle });
+export const updateMemberRole = (userId, role) => api.put(`/org/member/${userId}/role`, { role });
 
 export const getTasks = () => api.get('/tasks');
 export const createTask = (data) => api.post('/tasks', data);
