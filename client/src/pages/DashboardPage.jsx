@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getTasks, createTask, updateTask, deleteTask, getOrg } from '../services/authService';
 import toast from 'react-hot-toast';
+import TiltedCard from '../components/TiltedCard';
 
 const STATUS_LABELS = { TODO: 'To Do', IN_PROGRESS: 'In Progress', DONE: 'Done' };
 const STATUS_COLORS = {
@@ -206,18 +207,19 @@ export default function DashboardPage() {
             user={user}
             org={org}
             onLogout={logout}
-            onSwitchOrg={() => navigate('/onboarding/org')}
+            onSwitchOrg={() => navigate('/auth?step=org')}
           />
         </div>
       </header>
 
       <main className="max-w-5xl mx-auto px-6 py-8">
         {/* Create Task */}
-        <form onSubmit={handleCreate} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
-          <h2 className="font-semibold text-lg mb-4">New Task</h2>
-          <div className="space-y-3">
-            <input
-              type="text"
+        <TiltedCard className="p-6 mb-8" rotateAmplitude={6} scaleOnHover={1.01}>
+          <form onSubmit={handleCreate}>
+            <h2 className="font-semibold text-lg mb-4">New Task</h2>
+            <div className="space-y-3">
+              <input
+                type="text"
               placeholder="Task title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
@@ -239,7 +241,8 @@ export default function DashboardPage() {
               {creating ? 'Creating...' : 'Add Task'}
             </button>
           </div>
-        </form>
+          </form>
+        </TiltedCard>
 
         {/* Task List */}
         {loading ? (
@@ -250,42 +253,44 @@ export default function DashboardPage() {
             <p className="text-sm mt-1">Create your first task above</p>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-4">
             {tasks.map((task) => (
-              <div key={task._id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 flex items-start justify-between gap-4">
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-medium text-gray-900 truncate">{task.title}</h3>
-                  {task.description && (
-                    <p className="text-sm text-gray-500 mt-1 line-clamp-2">{task.description}</p>
-                  )}
-                  <div className="flex items-center gap-3 mt-3">
-                    <span className={`text-xs px-2 py-1 rounded-full font-medium ${STATUS_COLORS[task.status]}`}>
-                      {STATUS_LABELS[task.status]}
-                    </span>
-                    <span className="text-xs text-gray-400">
-                      by {task.createdBy?.name || 'Unknown'}
-                    </span>
+              <TiltedCard key={task._id} className="p-5" rotateAmplitude={4} scaleOnHover={1.01}>
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-medium text-gray-900 truncate">{task.title}</h3>
+                    {task.description && (
+                      <p className="text-sm text-gray-500 mt-1 line-clamp-2">{task.description}</p>
+                    )}
+                    <div className="flex items-center gap-3 mt-3">
+                      <span className={`text-xs px-2 py-1 rounded-full font-medium ${STATUS_COLORS[task.status]}`}>
+                        {STATUS_LABELS[task.status]}
+                      </span>
+                      <span className="text-xs text-gray-400">
+                        by {task.createdBy?.name || 'Unknown'}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <select
+                      value={task.status}
+                      onChange={(e) => handleStatusChange(task._id, e.target.value)}
+                      className="text-xs border border-gray-300 rounded-md px-2 py-1 focus:outline-none bg-white"
+                    >
+                      <option value="TODO">To Do</option>
+                      <option value="IN_PROGRESS">In Progress</option>
+                      <option value="DONE">Done</option>
+                    </select>
+                    <button
+                      onClick={() => handleDelete(task._id)}
+                      className="text-red-400 hover:text-red-600 text-sm p-1"
+                      title="Delete"
+                    >
+                      ✕
+                    </button>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  <select
-                    value={task.status}
-                    onChange={(e) => handleStatusChange(task._id, e.target.value)}
-                    className="text-xs border border-gray-300 rounded-md px-2 py-1 focus:outline-none"
-                  >
-                    <option value="TODO">To Do</option>
-                    <option value="IN_PROGRESS">In Progress</option>
-                    <option value="DONE">Done</option>
-                  </select>
-                  <button
-                    onClick={() => handleDelete(task._id)}
-                    className="text-red-400 hover:text-red-600 text-sm p-1"
-                    title="Delete"
-                  >
-                    ✕
-                  </button>
-                </div>
-              </div>
+              </TiltedCard>
             ))}
           </div>
         )}

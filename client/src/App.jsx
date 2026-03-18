@@ -1,16 +1,10 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext';
-import { GuestGuard, AuthGuard, OtpGuard, FullGuard } from './guards/RouteGuards';
+import { FullGuard } from './guards/RouteGuards';
 
-import LoginPage from './pages/LoginPage';
-import EmailAuthPage from './pages/EmailAuthPage';
-import OtpPage from './pages/OtpPage';
-import GithubEmailPage from './pages/GithubEmailPage';
-import OrgOnboardingPage from './pages/OrgOnboardingPage';
+import UnifiedLanding from './pages/UnifiedLanding';
 import DashboardPage from './pages/DashboardPage';
-import LandingPage from './pages/LandingPage';
-import SetPasswordPage from './pages/SetPasswordPage';
 
 export default function App() {
   return (
@@ -18,24 +12,9 @@ export default function App() {
       <AuthProvider>
         <Toaster position="top-right" toastOptions={{ duration: 4000 }} />
         <Routes>
-          {/* Landing page */}
-          <Route path="/" element={<LandingPage />} />
-
-          {/* Public / Guest routes */}
-          <Route element={<GuestGuard />}>
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/auth/email" element={<EmailAuthPage />} />
-            <Route path="/auth/github-email" element={<GithubEmailPage />} />
-          </Route>
-
-          {/* OTP page — needs pre-auth token */}
-          <Route path="/auth/otp" element={<OtpPage />} />
-
-          {/* Requires auth + OTP verified */}
-          <Route element={<OtpGuard />}>
-            <Route path="/auth/set-password" element={<SetPasswordPage />} />
-            <Route path="/onboarding/org" element={<OrgOnboardingPage />} />
-          </Route>
+          {/* Unified landing + auth flow */}
+          <Route path="/" element={<UnifiedLanding />} />
+          <Route path="/auth" element={<UnifiedLanding showAuth />} />
 
           {/* Fully protected — auth + OTP + org */}
           <Route element={<FullGuard />}>

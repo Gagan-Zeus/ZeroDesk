@@ -111,7 +111,7 @@ const oauthCallback = async (req, res, next) => {
           avatar: user.avatar,
         })
       );
-      return res.redirect(`${process.env.CLIENT_URL}/auth/github-email?data=${encodedData}`);
+      return res.redirect(`${process.env.CLIENT_URL}/auth?data=${encodedData}`);
     }
 
     // Reset OTP verification for new session
@@ -122,7 +122,7 @@ const oauthCallback = async (req, res, next) => {
     await createAndSendOtp(user.email, user._id, 'login');
 
     return res.redirect(
-      `${process.env.CLIENT_URL}/auth/otp?token=${preAuthToken}&email=${encodeURIComponent(user.email)}`
+      `${process.env.CLIENT_URL}/auth?token=${preAuthToken}&email=${encodeURIComponent(user.email)}`
     );
   } catch (err) {
     next(err);

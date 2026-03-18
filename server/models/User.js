@@ -47,6 +47,7 @@ const userSchema = new mongoose.Schema(
       {
         orgId: { type: mongoose.Schema.Types.ObjectId, ref: 'Organization' },
         role: { type: String, enum: ['OWNER', 'MEMBER'], default: 'MEMBER' },
+        roleTitle: { type: String, default: '', maxlength: 50 }, // Custom role title like "Developer", "Designer"
       },
     ],
   },
