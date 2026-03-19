@@ -15,7 +15,7 @@ import api from '../services/api';
 import toast from 'react-hot-toast';
 import TiltedCard from '../components/TiltedCard';
 
-const API_BASE = import.meta.env.VITE_API_URL || '/api';
+const API_BASE = '/api';
 
 const STEPS = {
   CHOOSE_METHOD: 'choose_method',
