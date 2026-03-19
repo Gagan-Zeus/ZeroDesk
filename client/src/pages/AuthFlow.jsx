@@ -14,7 +14,7 @@ import {
 import api from '../services/api';
 import toast from 'react-hot-toast';
 
-const API_BASE = '/api';
+const API_BASE = import.meta.env.VITE_API_URL || '/api';
 
 // Step definitions
 const STEPS = {
