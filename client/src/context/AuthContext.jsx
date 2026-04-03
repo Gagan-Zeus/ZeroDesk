@@ -19,15 +19,17 @@ export function AuthProvider({ children }) {
     if (!currentToken) {
       setUser(null);
       setLoading(false);
-      return;
+      return null;
     }
     try {
       const { data } = await getMe();
       setUser(data.user);
+      return data.user;
     } catch {
       setUser(null);
       localStorage.removeItem('zerodesk_token');
       setTokenState(null);
+      return null;
     } finally {
       setLoading(false);
     }

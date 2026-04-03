@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -38,7 +38,16 @@ const features = [
 ];
 
 export default function UnifiedLanding({ showAuth: initialShowAuth = false }) {
-  const [showAuth, setShowAuth] = useState(initialShowAuth);
+  const { setToken, fetchUser, isAuthenticated, hasOrganization } = useAuth();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  
+  // Check if this is OAuth callback on mount
+  const skipOtp = searchParams.get('skipOtp');
+  const tokenFromUrl = searchParams.get('token');
+  const isOAuthCallback = skipOtp === 'true' && tokenFromUrl;
+  
+  const [showAuth, setShowAuth] = useState(isOAuthCallback ? false : initialShowAuth);
   const [isClosing, setIsClosing] = useState(false);
   const [step, setStep] = useState(STEPS.CHOOSE_METHOD);
   const [email, setEmail] = useState('');
@@ -50,25 +59,57 @@ export default function UnifiedLanding({ showAuth: initialShowAuth = false }) {
   const [orgCode, setOrgCode] = useState('');
   const [roleTitle, setRoleTitle] = useState('');
   const [orgMode, setOrgMode] = useState('choose');
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(isOAuthCallback);
   const [resendCooldown, setResendCooldown] = useState(0);
   const [githubData, setGithubData] = useState({});
   const [animating, setAnimating] = useState(false);
-
-  const { setToken, fetchUser, isAuthenticated, hasOrganization } = useAuth();
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const oauthProcessedRef = useRef(false);
 
   useEffect(() => {
     const tokenFromUrl = searchParams.get('token');
     const emailFromUrl = searchParams.get('email');
     const dataFromUrl = searchParams.get('data');
     const stepFromUrl = searchParams.get('step');
+    const skipOtp = searchParams.get('skipOtp');
 
+    // Handle OAuth flow immediately without showing auth modal
+    if (skipOtp === 'true' && tokenFromUrl && !oauthProcessedRef.current) {
+      // OAuth login - skip OTP, directly authenticate
+      oauthProcessedRef.current = true;
+      
+      (async () => {
+        try {
+          setLoading(true);
+          setToken(tokenFromUrl);
+          const userData = await fetchUser();
+          toast.success('Signed in successfully!');
+          
+          // Check if user needs to set up organization
+          if (!userData?.currentOrganizationId) {
+            window.history.replaceState({}, '', '/auth?step=org');
+            setShowAuth(true);
+            setStep(STEPS.ORGANIZATION);
+          } else {
+            navigate('/dashboard');
+          }
+        } catch (err) {
+          toast.error('Failed to authenticate');
+          setShowAuth(true);
+          setStep(STEPS.CHOOSE_METHOD);
+          oauthProcessedRef.current = false;
+        } finally {
+          setLoading(false);
+        }
+      })();
+      return; // Exit early to prevent other conditions from running
+    }
+
+    // Handle other auth flows
     if (tokenFromUrl || dataFromUrl || stepFromUrl) {
       setShowAuth(true);
       setTimeout(() => {
         if (tokenFromUrl) {
+          // Email/password login - show OTP screen
           localStorage.setItem('zerodesk_token', tokenFromUrl);
           if (emailFromUrl) setEmail(decodeURIComponent(emailFromUrl));
           setStep(STEPS.OTP);

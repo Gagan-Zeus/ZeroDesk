@@ -42,6 +42,7 @@ export default function AuthFlow() {
   const [resendCooldown, setResendCooldown] = useState(0);
   const [githubData, setGithubData] = useState({});
   const [animating, setAnimating] = useState(false);
+  const [oauthProcessed, setOauthProcessed] = useState(false);
 
   const { setToken, fetchUser, user } = useAuth();
   const navigate = useNavigate();
@@ -49,25 +50,83 @@ export default function AuthFlow() {
 
   // Handle OAuth callback params
   useEffect(() => {
+    // Prevent re-processing when navigating to org setup
+    if (oauthProcessed) {
+      console.log('OAuth already processed, skipping');
+      return;
+    }
+
     const tokenFromUrl = searchParams.get('token');
     const emailFromUrl = searchParams.get('email');
     const dataFromUrl = searchParams.get('data');
     const stepFromUrl = searchParams.get('step');
+    const skipOtp = searchParams.get('skipOtp');
 
-    if (tokenFromUrl) {
+    // Debug logging
+    console.log('OAuth Callback Debug:', { 
+      tokenFromUrl: tokenFromUrl ? 'present' : 'null', 
+      skipOtp, 
+      skipOtpType: typeof skipOtp,
+      emailFromUrl, 
+      stepFromUrl,
+      oauthProcessed 
+    });
+
+    // Check skipOtp first before token to catch OAuth flow
+    if (skipOtp === 'true' && tokenFromUrl) {
+      // OAuth login - skip OTP, directly authenticate
+      console.log('✅ OAuth flow detected - skipping OTP');
+      setOauthProcessed(true);
+      
+      (async () => {
+        try {
+          setLoading(true);
+          console.log('Setting token...');
+          setToken(tokenFromUrl);
+          
+          console.log('Fetching user data...');
+          const userData = await fetchUser();
+          console.log('User data fetched:', userData);
+          
+          toast.success('Signed in successfully!');
+          
+          // Check if user needs to set up organization
+          if (!userData?.currentOrganizationId) {
+            console.log('No organization - redirecting to org setup');
+            // Clear URL params before navigating
+            window.history.replaceState({}, '', '/auth?step=org');
+            transitionTo(STEPS.ORGANIZATION);
+          } else {
+            console.log('Has organization - redirecting to dashboard');
+            navigate('/dashboard');
+          }
+        } catch (err) {
+          console.error('❌ OAuth auth failed:', err);
+          toast.error('Failed to authenticate');
+          setOauthProcessed(false);
+          transitionTo(STEPS.CHOOSE_METHOD);
+        } finally {
+          setLoading(false);
+        }
+      })();
+    } else if (tokenFromUrl && !skipOtp) {
+      // Email/password login - show OTP screen
+      console.log('📧 Email/password flow - showing OTP');
       localStorage.setItem('zerodesk_token', tokenFromUrl);
       if (emailFromUrl) setEmail(decodeURIComponent(emailFromUrl));
       transitionTo(STEPS.OTP);
     } else if (dataFromUrl) {
+      console.log('GitHub email fallback');
       try {
         const parsed = JSON.parse(decodeURIComponent(dataFromUrl));
         setGithubData(parsed);
         transitionTo(STEPS.GITHUB_EMAIL);
       } catch {}
     } else if (stepFromUrl === 'org') {
+      console.log('Organization step');
       transitionTo(STEPS.ORGANIZATION);
     }
-  }, [searchParams]);
+  }, [searchParams, oauthProcessed]);
 
   // Resend cooldown timer
   useEffect(() => {

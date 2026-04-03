@@ -114,15 +114,15 @@ const oauthCallback = async (req, res, next) => {
       return res.redirect(`${process.env.CLIENT_URL}/auth?data=${encodedData}`);
     }
 
-    // Reset OTP verification for new session
-    user.isOtpVerified = false;
+    // For OAuth logins (Google/GitHub), skip OTP and directly issue full JWT token
+    // OAuth providers have already authenticated the user
+    user.isOtpVerified = true;
     await user.save();
 
-    const preAuthToken = signPreAuthToken({ userId: user._id, email: user.email });
-    await createAndSendOtp(user.email, user._id, 'login');
+    const token = signToken({ userId: user._id, email: user.email });
 
     return res.redirect(
-      `${process.env.CLIENT_URL}/auth?token=${preAuthToken}&email=${encodeURIComponent(user.email)}`
+      `${process.env.CLIENT_URL}/auth?token=${token}&skipOtp=true`
     );
   } catch (err) {
     next(err);
