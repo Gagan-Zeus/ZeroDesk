@@ -6,9 +6,9 @@ import toast from 'react-hot-toast';
 
 const STATUS_LABELS = { TODO: 'To Do', IN_PROGRESS: 'In Progress', DONE: 'Done' };
 const STATUS_COLORS = {
-  TODO: 'bg-yellow-100 text-yellow-800',
-  IN_PROGRESS: 'bg-blue-100 text-blue-800',
-  DONE: 'bg-green-100 text-green-800',
+  TODO: 'bg-amber-100 text-amber-700',
+  IN_PROGRESS: 'bg-[#dbe1ff] text-[#003aa0]',
+  DONE: 'bg-emerald-100 text-emerald-700',
 };
 
 export default function DashboardPage() {
@@ -157,41 +157,41 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className={`min-h-screen bg-gray-50 flex flex-col transition-opacity duration-300 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
+    <div className={`zd-shell flex min-h-screen flex-col transition-opacity duration-300 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="max-w-[1800px] mx-auto flex items-center justify-between">
+      <header className="border-b border-[#c5c5d4]/20 bg-[#faf8ff]/90 px-6 py-5 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-[1800px] items-center justify-between">
           <button
             onClick={() => navigateWithTransition('/')}
             className="flex items-center gap-3 hover:opacity-80 transition"
           >
-            <div className="w-9 h-9 bg-brand-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-lg">Z</span>
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#003aa0] text-white shadow-[0px_12px_32px_rgba(0,58,160,0.18)]">
+              <span className="text-sm font-bold">Z</span>
             </div>
             <div className="text-left">
-              <h1 className="text-xl font-bold text-brand-900">ZeroDesk</h1>
-              {org && <p className="text-xs text-gray-500">{org.name}</p>}
+              <h1 className="text-xl font-extrabold tracking-tight text-[#131b2e]">ZeroDesk</h1>
+              {org && <p className="text-[11px] uppercase tracking-[0.18em] text-[#565c84]">{org.name}</p>}
             </div>
           </button>
           <div className="flex items-center gap-3">
             {/* Role Badge */}
             <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${
               isOwner ? 'bg-amber-100 text-amber-700' : 
-              isAdmin ? 'bg-purple-100 text-purple-700' : 
-              'bg-gray-100 text-gray-600'
+              isAdmin ? 'bg-[#e2e7ff] text-[#003aa0]' : 
+              'bg-[#eaedff] text-[#565c84]'
             }`}>
               {currentUserRole}
             </span>
             {/* Profile Icon */}
             <button
               onClick={() => navigate('/profile')}
-              className="focus:outline-none hover:opacity-80 transition hover:scale-105"
+              className="rounded-full p-0.5 transition hover:opacity-80 hover:scale-105 focus:outline-none focus:ring-4 focus:ring-[#0053db]/10"
               title="Profile Settings"
             >
               {user?.avatar ? (
-                <img src={user.avatar} alt="" className="w-10 h-10 rounded-full border-2 border-brand-200" />
+                <img src={user.avatar} alt="" className="h-11 w-11 rounded-full border-2 border-[#dbe1ff] object-cover" />
               ) : (
-                <div className="w-10 h-10 rounded-full bg-brand-600 text-white flex items-center justify-center text-sm font-bold">
+                <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#003aa0] text-sm font-bold text-white">
                   {initials(user?.name)}
                 </div>
               )}
@@ -201,11 +201,11 @@ export default function DashboardPage() {
       </header>
 
       {/* Main Content - Split Layout 1:2 ratio */}
-      <div className="min-w-[1200px] mx-auto px-6 py-6 flex-1">
-        <div className="flex gap-6">
+      <div className="mx-auto w-full max-w-[1800px] flex-1 px-6 py-8">
+        <div className="grid gap-6 xl:grid-cols-[360px_minmax(0,1fr)]">
           {/* Left Pane - Members (1/3) */}
-          <aside className="w-1/3 shrink-0 self-start bg-white rounded-2xl border border-gray-200 p-5">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+          <aside className="zd-subtle-panel self-start p-5">
+            <h2 className="mb-5 flex items-center gap-2 text-lg font-bold text-[#131b2e]">
               <svg className="w-5 h-5 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>
@@ -214,8 +214,8 @@ export default function DashboardPage() {
             </h2>
             
             {/* Search Input */}
-            <div className="relative mb-4">
-              <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="relative mb-5">
+              <svg className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#757684]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
               <input
@@ -223,12 +223,12 @@ export default function DashboardPage() {
                 placeholder="Search members..."
                 value={memberSearch}
                 onChange={(e) => setMemberSearch(e.target.value)}
-                className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none"
+                className="zd-input pl-11 pr-10"
               />
               {memberSearch && (
                 <button
                   onClick={() => setMemberSearch('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-[#757684] transition hover:text-[#131b2e]"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -268,33 +268,33 @@ export default function DashboardPage() {
                     return (
                       <div 
                         key={member._id} 
-                        className="p-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition"
+                        className="rounded-[20px] bg-white p-4 shadow-[0px_12px_32px_rgba(19,27,46,0.04)] transition hover:-translate-y-0.5"
                       >
                         <div className="flex items-center gap-3">
                           {member.avatar ? (
-                            <img src={member.avatar} alt="" className="w-9 h-9 rounded-full object-cover shrink-0" />
+                            <img src={member.avatar} alt="" className="h-10 w-10 shrink-0 rounded-full object-cover" />
                           ) : (
-                            <div className="w-9 h-9 rounded-full bg-brand-100 text-brand-600 flex items-center justify-center text-sm font-bold shrink-0">
+                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#dbe1ff] text-sm font-bold text-[#003aa0]">
                               {initials(member.name)}
                             </div>
                           )}
                           <div className="flex-1 min-w-0">
-                            <p className="font-medium text-gray-900 text-sm truncate">
+                            <p className="truncate text-sm font-semibold text-[#131b2e]">
                               {member.name} {isSelf && <span className="text-gray-400">(You)</span>}
                             </p>
-                            <p className="text-xs text-gray-500 truncate">{member.roleTitle || member.role}</p>
+                            <p className="truncate text-xs text-[#565c84]">{member.roleTitle || member.role}</p>
                           </div>
                           <div className="flex items-center gap-1.5 shrink-0">
-                            <div className="flex items-center gap-1 bg-brand-50 px-2 py-0.5 rounded-full">
-                              <svg className="w-3 h-3 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <div className="flex items-center gap-1 rounded-full bg-[#dbe1ff] px-2.5 py-1">
+                              <svg className="h-3 w-3 text-[#003aa0]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                               </svg>
-                              <span className="text-xs font-semibold text-brand-600">{taskCount}</span>
+                              <span className="text-xs font-semibold text-[#003aa0]">{taskCount}</span>
                             </div>
                             <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
                               member.role === 'OWNER' ? 'bg-amber-100 text-amber-700' : 
-                              member.role === 'ADMIN' ? 'bg-purple-100 text-purple-700' : 
-                              'bg-gray-200 text-gray-600'
+                              member.role === 'ADMIN' ? 'bg-[#e2e7ff] text-[#003aa0]' : 
+                              'bg-[#eaedff] text-[#565c84]'
                             }`}>
                               {member.role}
                             </span>
@@ -303,13 +303,13 @@ export default function DashboardPage() {
                         
                         {/* Promote/Demote controls (visible only to OWNER, not for self or other owners) */}
                         {isOwner && !isSelf && !isMemberOwner && (
-                          <div className="mt-2 pt-2 border-t border-gray-200">
+                          <div className="mt-3 border-t border-[#c5c5d4]/20 pt-3">
                             <div className="flex items-center gap-2">
-                              <span className="text-xs text-gray-500">Role:</span>
+                              <span className="text-xs text-[#565c84]">Role:</span>
                               <select
                                 value={member.role}
                                 onChange={(e) => handleRoleChange(member._id, e.target.value)}
-                                className="text-xs border border-gray-300 rounded-lg px-2 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-brand-500"
+                                className="rounded-xl border border-[#c5c5d4]/30 bg-white px-3 py-1.5 text-xs outline-none focus:ring-2 focus:ring-[#0053db]/10"
                               >
                                 <option value="MEMBER">Member</option>
                                 <option value="ADMIN">Admin</option>
@@ -326,11 +326,11 @@ export default function DashboardPage() {
           </aside>
 
           {/* Right Pane - Tasks (2/3) */}
-          <main className="w-2/3 space-y-6 min-w-0">
+          <main className="min-w-0 space-y-6">
             {/* Task Creation Form - Only visible to OWNER and ADMIN */}
             {canCreateTasks && (
-              <div className="bg-white rounded-2xl border border-gray-200 p-6">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <div className="zd-panel border border-[#c5c5d4]/20 p-6">
+                <h2 className="mb-5 flex items-center gap-2 text-lg font-bold text-[#131b2e]">
                   <svg className="w-5 h-5 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                   </svg>
@@ -338,32 +338,32 @@ export default function DashboardPage() {
                 </h2>
                 <form onSubmit={handleCreate} className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1.5">Task Title</label>
+                    <label className="mb-2 block text-[11px] font-bold uppercase tracking-[0.22em] text-[#565c84]">Task Title</label>
                     <input
                       type="text"
                       placeholder="Enter task title"
                       value={title}
                       onChange={(e) => setTitle(e.target.value)}
                       required
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none"
+                      className="zd-input"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1.5">Description</label>
+                    <label className="mb-2 block text-[11px] font-bold uppercase tracking-[0.22em] text-[#565c84]">Description</label>
                     <textarea
                       placeholder="Enter task description (optional)"
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
                       rows={3}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none resize-none"
+                      className="zd-textarea resize-none"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1.5">Assign To</label>
+                    <label className="mb-2 block text-[11px] font-bold uppercase tracking-[0.22em] text-[#565c84]">Assign To</label>
                     <select
                       value={assignedTo}
                       onChange={(e) => setAssignedTo(e.target.value)}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none bg-white"
+                      className="zd-select"
                     >
                       <option value="">Select a team member</option>
                       {members.map((member) => (
@@ -376,7 +376,7 @@ export default function DashboardPage() {
                   <button
                     type="submit"
                     disabled={creating}
-                    className="px-6 py-2.5 bg-brand-600 text-white rounded-xl hover:bg-brand-700 transition font-medium disabled:opacity-50"
+                    className="zd-primary-btn"
                   >
                     {creating ? 'Creating...' : 'Create Task'}
                   </button>
@@ -385,9 +385,9 @@ export default function DashboardPage() {
             )}
 
             {/* Task List */}
-            <div className="bg-white rounded-2xl border border-gray-200 p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+            <div className="zd-panel border border-[#c5c5d4]/20 p-6">
+              <div className="mb-5 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                <h2 className="flex items-center gap-2 text-lg font-bold text-[#131b2e]">
                   <svg className="w-5 h-5 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
                   </svg>
@@ -402,8 +402,8 @@ export default function DashboardPage() {
                   onClick={() => setFilterMyTasks(!filterMyTasks)}
                   className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition ${
                     filterMyTasks 
-                      ? 'bg-brand-600 text-white' 
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      ? 'bg-[#003aa0] text-white shadow-[0px_12px_32px_rgba(0,58,160,0.18)]' 
+                      : 'bg-[#e2e7ff] text-[#565c84] hover:bg-[#dae2fd]'
                   }`}
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -414,14 +414,14 @@ export default function DashboardPage() {
               </div>
 
               {loading ? (
-                <div className="text-center text-gray-400 py-12">Loading tasks...</div>
+                <div className="py-12 text-center text-[#565c84]">Loading tasks...</div>
               ) : tasks.length === 0 ? (
-                <div className="text-center text-gray-400 py-12">
-                  <svg className="w-12 h-12 mx-auto text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="py-12 text-center text-[#565c84]">
+                  <svg className="mx-auto mb-3 h-12 w-12 text-[#c5c5d4]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                   </svg>
-                  <p className="text-lg">No tasks yet</p>
-                  <p className="text-sm mt-1">
+                  <p className="text-lg font-bold text-[#131b2e]">No tasks yet</p>
+                  <p className="mt-1 text-sm text-[#565c84]">
                     {canCreateTasks ? 'Create your first task above' : 'Tasks will appear here when assigned to you'}
                   </p>
                 </div>
@@ -438,29 +438,29 @@ export default function DashboardPage() {
                     return (
                       <div 
                         key={task._id} 
-                        className={`p-4 rounded-xl border transition ${
+                        className={`rounded-[20px] border p-4 transition ${
                           isAssignedToMe 
-                            ? 'border-brand-200 bg-brand-50/30' 
-                            : 'border-gray-100 bg-gray-50 hover:border-gray-200'
+                            ? 'border-[#b4c5ff] bg-[#eef2ff]' 
+                            : 'border-white bg-white hover:border-[#dbe1ff]'
                         }`}
                       >
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
-                              <h3 className="font-medium text-gray-900">{task.title}</h3>
+                              <h3 className="font-semibold text-[#131b2e]">{task.title}</h3>
                               <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_COLORS[task.status]}`}>
                                 {STATUS_LABELS[task.status]}
                               </span>
                               {isAssignedToMe && (
-                                <span className="text-xs px-2 py-0.5 rounded-full bg-brand-100 text-brand-700 font-medium">
+                                <span className="rounded-full bg-[#dbe1ff] px-2.5 py-1 text-[11px] font-semibold text-[#003aa0]">
                                   Assigned to you
                                 </span>
                               )}
                             </div>
                             {task.description && (
-                              <p className="text-sm text-gray-500 mt-1 line-clamp-2">{task.description}</p>
+                              <p className="mt-1 line-clamp-2 text-sm text-[#565c84]">{task.description}</p>
                             )}
-                            <div className="flex items-center gap-4 mt-3 text-xs text-gray-500">
+                            <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-[#565c84]">
                               <span className="flex items-center gap-1">
                                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -468,7 +468,7 @@ export default function DashboardPage() {
                                 Created by {task.createdBy?.name || 'Unknown'}
                               </span>
                               {task.assignedTo && (
-                                <span className="flex items-center gap-1.5 bg-brand-50 text-brand-700 px-2 py-0.5 rounded-full font-medium">
+                                <span className="flex items-center gap-1.5 rounded-full bg-[#dbe1ff] px-2.5 py-1 font-semibold text-[#003aa0]">
                                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                                   </svg>
@@ -483,7 +483,7 @@ export default function DashboardPage() {
                               <select
                                 value={task.status}
                                 onChange={(e) => handleStatusChange(task._id, e.target.value)}
-                                className="text-xs border border-gray-300 rounded-lg px-2 py-1.5 focus:outline-none bg-white"
+                                className="rounded-xl border border-[#c5c5d4]/30 bg-white px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-[#0053db]/10"
                               >
                                 <option value="TODO">To Do</option>
                                 <option value="IN_PROGRESS">In Progress</option>
@@ -494,7 +494,7 @@ export default function DashboardPage() {
                             {canDeleteThis && (
                               <button
                                 onClick={() => handleDelete(task._id)}
-                                className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
+                                className="rounded-xl p-2 text-[#757684] transition hover:bg-red-50 hover:text-red-600"
                                 title="Delete task"
                               >
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -515,14 +515,14 @@ export default function DashboardPage() {
       </div>
 
       {/* Footer */}
-      <footer className="mt-auto border-t border-gray-200 bg-white py-6">
-        <div className="max-w-[1800px] mx-auto px-6 flex items-center justify-between text-sm text-gray-400">
+      <footer className="mt-auto border-t border-[#c5c5d4]/20 bg-[#faf8ff] py-8">
+        <div className="mx-auto flex max-w-[1800px] flex-col items-center justify-between gap-4 px-6 text-center text-sm text-[#565c84] md:flex-row md:text-left">
           <span>© 2026 ZeroDesk. All rights reserved.</span>
           <div className="flex items-center gap-2">
-            <div className="w-5 h-5 bg-brand-600 rounded flex items-center justify-center">
-              <span className="text-white font-bold text-[10px]">Z</span>
+            <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-[#003aa0] text-white">
+              <span className="text-[10px] font-bold">Z</span>
             </div>
-            <span className="font-medium text-gray-500">ZeroDesk</span>
+            <span className="font-medium text-[#454652]">ZeroDesk</span>
           </div>
         </div>
       </footer>

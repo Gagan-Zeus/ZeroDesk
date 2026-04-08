@@ -1,7 +1,84 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-body {
-  min-height: 100vh;
+:root {
+  color-scheme: light;
+}
+
+@layer base {
+  html {
+    @apply scroll-smooth;
+  }
+
+  body {
+    @apply min-h-screen bg-[#faf8ff] text-[#131b2e] antialiased;
+    font-family: 'Inter', sans-serif;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: 'Manrope', sans-serif;
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+  }
+}
+
+@layer components {
+  .zd-shell {
+    @apply min-h-screen bg-[#faf8ff] text-[#131b2e];
+  }
+
+  .zd-panel {
+    @apply rounded-[24px] bg-white shadow-[0px_12px_32px_rgba(19,27,46,0.04)];
+  }
+
+  .zd-subtle-panel {
+    @apply rounded-[24px] bg-[#f2f3ff] shadow-[0px_12px_32px_rgba(19,27,46,0.04)];
+  }
+
+  .zd-card {
+    @apply rounded-[20px] bg-white shadow-[0px_12px_32px_rgba(19,27,46,0.04)];
+  }
+
+  .zd-input {
+    @apply w-full rounded-2xl bg-white px-4 py-3 text-sm text-[#131b2e] outline-none ring-1 ring-inset ring-[#c5c5d4]/20 transition focus:ring-2 focus:ring-[#0053db]/10;
+  }
+
+  .zd-select {
+    @apply w-full rounded-2xl bg-white px-4 py-3 text-sm text-[#131b2e] outline-none ring-1 ring-inset ring-[#c5c5d4]/20 transition focus:ring-2 focus:ring-[#0053db]/10;
+  }
+
+  .zd-textarea {
+    @apply w-full rounded-2xl bg-white px-4 py-3 text-sm text-[#131b2e] outline-none ring-1 ring-inset ring-[#c5c5d4]/20 transition focus:ring-2 focus:ring-[#0053db]/10;
+  }
+
+  .zd-primary-btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-3 text-sm font-semibold text-white transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60;
+    background: linear-gradient(135deg, #003aa0 0%, #004fd2 100%);
+    box-shadow: 0px 12px 32px rgba(0, 58, 160, 0.18);
+  }
+
+  .zd-secondary-btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-2xl bg-[#e2e7ff] px-5 py-3 text-sm font-semibold text-[#003aa0] transition hover:bg-[#dae2fd] active:scale-[0.98];
+  }
+
+  .zd-ghost-btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-2.5 text-sm font-medium text-[#565c84] transition hover:bg-[#f2f3ff] hover:text-[#131b2e] active:scale-[0.98];
+  }
+
+  .zd-badge {
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold;
+  }
 }
