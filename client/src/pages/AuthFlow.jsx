@@ -353,11 +353,21 @@ export default function AuthFlow() {
               <p className="text-gray-500 mt-1">Choose how you'd like to continue</p>
             </div>
             <div className="space-y-3">
-              <button onClick={handleGoogle} className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-200 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all font-medium">
-                <GoogleIcon /> Continue with Google
+              <button
+                type="button"
+                onClick={handleGoogle}
+                className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-200 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all font-medium"
+              >
+                <GoogleIcon />
+                <span className="pointer-events-none select-none">Continue with Google</span>
               </button>
-              <button onClick={handleGithub} className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-200 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all font-medium">
-                <GithubIcon /> Continue with GitHub
+              <button
+                type="button"
+                onClick={handleGithub}
+                className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-200 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all font-medium"
+              >
+                <GithubIcon />
+                <span className="pointer-events-none select-none">Continue with GitHub</span>
               </button>
             </div>
             <div className="relative">

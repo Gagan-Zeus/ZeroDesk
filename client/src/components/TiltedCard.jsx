@@ -8,13 +8,14 @@ export default function TiltedCard({
   scaleOnHover = 1.02,
   borderColor = 'border-brand-200',
   glowColor = 'shadow-brand-100',
+  interactive = true,
 }) {
   const cardRef = useRef(null);
   const [transform, setTransform] = useState('');
   const [isHovered, setIsHovered] = useState(false);
 
   const handleMouseMove = (e) => {
-    if (!cardRef.current) return;
+    if (!interactive || !cardRef.current) return;
     const rect = cardRef.current.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
@@ -31,6 +32,7 @@ export default function TiltedCard({
   };
 
   const handleMouseEnter = () => {
+    if (!interactive) return;
     setIsHovered(true);
   };
 
@@ -44,12 +46,12 @@ export default function TiltedCard({
         className={`
           transition-all duration-200 ease-out
           bg-white rounded-3xl border-2 ${borderColor}
-          ${isHovered ? `shadow-2xl ${glowColor}` : 'shadow-xl'}
+          ${interactive && isHovered ? `shadow-2xl ${glowColor}` : 'shadow-xl'}
           ${className}
         `}
         style={{
-          transform: transform || 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1)',
-          transformStyle: 'preserve-3d',
+          transform: interactive ? (transform || 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1)') : 'none',
+          transformStyle: interactive ? 'preserve-3d' : 'flat',
         }}
       >
         {children}

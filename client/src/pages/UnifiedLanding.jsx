@@ -277,11 +277,21 @@ export default function UnifiedLanding({ showAuth: initialShowAuth = false }) {
               <p className="text-gray-500 mt-1 text-sm">Choose how you'd like to continue</p>
             </div>
             <div className="space-y-3">
-              <button onClick={handleGoogle} className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all font-medium shadow-sm">
-                <GoogleIcon /> Continue with Google
+              <button
+                type="button"
+                onClick={handleGoogle}
+                className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all font-medium shadow-sm"
+              >
+                <GoogleIcon />
+                <span className="pointer-events-none select-none">Continue with Google</span>
               </button>
-              <button onClick={handleGithub} className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all font-medium shadow-sm">
-                <GithubIcon /> Continue with GitHub
+              <button
+                type="button"
+                onClick={handleGithub}
+                className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all font-medium shadow-sm"
+              >
+                <GithubIcon />
+                <span className="pointer-events-none select-none">Continue with GitHub</span>
               </button>
             </div>
             <div className="relative my-6">
@@ -495,7 +505,7 @@ export default function UnifiedLanding({ showAuth: initialShowAuth = false }) {
             }`}
             style={{ transitionDelay: showAuth && !isClosing ? '150ms' : '0ms' }}
           >
-            <TiltedCard className="w-[500px] px-16 py-10 relative">
+            <TiltedCard interactive={false} className="w-[500px] px-16 py-10 relative">
               {/* Mobile logo */}
               <div className="lg:hidden flex items-center justify-center gap-2 mb-6">
                 <div className="w-8 h-8 bg-brand-600 rounded-lg flex items-center justify-center">
