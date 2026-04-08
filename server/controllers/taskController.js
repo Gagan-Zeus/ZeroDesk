@@ -1,6 +1,7 @@
 const { body, param } = require('express-validator');
 const Task = require('../models/Task');
 const Organization = require('../models/Organization');
+const { sendTaskAssignedEmail } = require('../services/emailService');
 
 // Helper to get user's role in current org
 const getUserRole = async (userId, orgId) => {
@@ -30,7 +31,7 @@ const listTasks = async (req, res, next) => {
 // POST /api/tasks — Create a task (OWNER or ADMIN only)
 const createTask = async (req, res, next) => {
   try {
-    const { title, description, status, assignedTo } = req.body;
+    const { title, description, status, assignedTo, dueDate } = req.body;
     const userRole = await getUserRole(req.user._id, req.organizationId);
 
     if (!['OWNER', 'ADMIN'].includes(userRole)) {
@@ -42,11 +43,29 @@ const createTask = async (req, res, next) => {
       description,
       status,
       assignedTo: assignedTo || null,
+      dueDate: dueDate || null,
       createdBy: req.user._id,
       organizationId: req.organizationId,
     });
 
-    return res.status(201).json({ task });
+    const populatedTask = await Task.findById(task._id)
+      .populate('assignedTo', 'name email avatar')
+      .populate('createdBy', 'name email');
+
+    if (populatedTask?.assignedTo?.email) {
+      const org = await Organization.findById(req.organizationId).select('name');
+      sendTaskAssignedEmail({
+        to: populatedTask.assignedTo.email,
+        assigneeName: populatedTask.assignedTo.name,
+        createdByName: populatedTask.createdBy?.name,
+        organizationName: org?.name,
+        task: populatedTask,
+      }).catch((emailErr) => {
+        console.error('Failed to send task assignment email:', emailErr);
+      });
+    }
+
+    return res.status(201).json({ task: populatedTask });
   } catch (err) {
     next(err);
   }
@@ -68,7 +87,7 @@ const updateTask = async (req, res, next) => {
     const isAssignedUser = task.assignedTo?.toString() === req.user._id.toString();
     const isOwnerOrAdmin = ['OWNER', 'ADMIN'].includes(userRole);
 
-    const { title, description, status, assignedTo } = req.body;
+    const { title, description, status, assignedTo, dueDate } = req.body;
 
     // Status can only be changed by assigned user
     if (status !== undefined && status !== task.status) {
@@ -77,8 +96,8 @@ const updateTask = async (req, res, next) => {
       }
     }
 
-    // Title, description, assignedTo can be changed by OWNER/ADMIN
-    if ((title !== undefined || description !== undefined || assignedTo !== undefined) && !isOwnerOrAdmin) {
+    // Title, description, assignedTo, dueDate can be changed by OWNER/ADMIN
+    if ((title !== undefined || description !== undefined || assignedTo !== undefined || dueDate !== undefined) && !isOwnerOrAdmin) {
       return res.status(403).json({ message: 'Only owners and admins can edit task details.' });
     }
 
@@ -86,6 +105,7 @@ const updateTask = async (req, res, next) => {
     if (description !== undefined) task.description = description;
     if (status !== undefined) task.status = status;
     if (assignedTo !== undefined && isOwnerOrAdmin) task.assignedTo = assignedTo;
+    if (dueDate !== undefined && isOwnerOrAdmin) task.dueDate = dueDate || null;
 
     await task.save();
     return res.json({ task });
@@ -130,12 +150,14 @@ const deleteTask = async (req, res, next) => {
 const createTaskValidation = [
   body('title').trim().notEmpty().withMessage('Title is required.').isLength({ max: 200 }),
   body('status').optional().isIn(['TODO', 'IN_PROGRESS', 'DONE']),
+  body('dueDate').optional({ nullable: true, checkFalsy: true }).isISO8601().withMessage('Due date must be a valid date.'),
 ];
 
 const updateTaskValidation = [
   param('id').isMongoId(),
   body('title').optional().trim().isLength({ max: 200 }),
   body('status').optional().isIn(['TODO', 'IN_PROGRESS', 'DONE']),
+  body('dueDate').optional({ nullable: true, checkFalsy: true }).isISO8601().withMessage('Due date must be a valid date.'),
 ];
 
 module.exports = {

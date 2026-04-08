@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getTasks, createTask, updateTask, deleteTask, getOrg, getOrgMembers, updateMemberRole } from '../services/authService';
-import toast from 'react-hot-toast';
+import InlineAlert from '../components/InlineAlert';
 
 const STATUS_LABELS = { TODO: 'To Do', IN_PROGRESS: 'In Progress', DONE: 'Done' };
 const STATUS_COLORS = {
@@ -20,11 +20,14 @@ export default function DashboardPage() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [assignedTo, setAssignedTo] = useState('');
+  const [dueDate, setDueDate] = useState('');
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const [filterMyTasks, setFilterMyTasks] = useState(false);
   const [memberSearch, setMemberSearch] = useState('');
+  const [alert, setAlert] = useState(null);
+  const clearAlert = () => setAlert(null);
 
   // Get current user's role in org
   const currentUserRole = user?.organizations?.find(
@@ -59,7 +62,7 @@ export default function DashboardPage() {
       const { data } = await getTasks();
       setTasks(data.tasks);
     } catch (err) {
-      toast.error('Failed to load tasks');
+      setAlert({ type: 'error', message: 'Failed to load tasks' });
     } finally {
       setLoading(false);
     }
@@ -95,54 +98,72 @@ export default function DashboardPage() {
     return tasks.filter((task) => task.assignedTo?._id === memberId).length;
   };
 
+  const formatDateTime = (value) => {
+    if (!value) return '—';
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? '—' : date.toLocaleString();
+  };
+
+  const formatDate = (value) => {
+    if (!value) return '—';
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? '—' : date.toLocaleDateString();
+  };
+
   const handleCreate = async (e) => {
     e.preventDefault();
     if (!title.trim()) return;
+    clearAlert();
     setCreating(true);
     try {
       await createTask({ 
         title, 
         description, 
-        assignedTo: assignedTo || null 
+        assignedTo: assignedTo || null,
+        dueDate: dueDate || null,
       });
       setTitle('');
       setDescription('');
       setAssignedTo('');
+      setDueDate('');
       await fetchTasks();
-      toast.success('Task created');
+      setAlert({ type: 'success', message: 'Task created' });
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to create task');
+      setAlert({ type: 'error', message: err.response?.data?.message || 'Failed to create task' });
     } finally {
       setCreating(false);
     }
   };
 
   const handleStatusChange = async (taskId, newStatus) => {
+    clearAlert();
     try {
       await updateTask(taskId, { status: newStatus });
       await fetchTasks();
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to update task');
+      setAlert({ type: 'error', message: err.response?.data?.message || 'Failed to update task' });
     }
   };
 
   const handleDelete = async (taskId) => {
+    clearAlert();
     try {
       await deleteTask(taskId);
       await fetchTasks();
-      toast.success('Task deleted');
+      setAlert({ type: 'success', message: 'Task deleted' });
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to delete task');
+      setAlert({ type: 'error', message: err.response?.data?.message || 'Failed to delete task' });
     }
   };
 
   const handleRoleChange = async (memberId, newRole) => {
+    clearAlert();
     try {
       await updateMemberRole(memberId, newRole);
       await fetchMembers();
-      toast.success(`Member role updated to ${newRole}`);
+      setAlert({ type: 'success', message: `Member role updated to ${newRole}` });
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to update role');
+      setAlert({ type: 'error', message: err.response?.data?.message || 'Failed to update role' });
     }
   };
 
@@ -202,6 +223,7 @@ export default function DashboardPage() {
 
       {/* Main Content - Split Layout 1:2 ratio */}
       <div className="mx-auto w-full max-w-[1800px] flex-1 px-6 py-8">
+        <InlineAlert alert={alert} onDismiss={clearAlert} className="mb-6" />
         <div className="grid gap-6 xl:grid-cols-[360px_minmax(0,1fr)]">
           {/* Left Pane - Members (1/3) */}
           <aside className="zd-subtle-panel self-start p-5">
@@ -358,20 +380,31 @@ export default function DashboardPage() {
                       className="zd-textarea resize-none"
                     />
                   </div>
-                  <div>
-                    <label className="mb-2 block text-[11px] font-bold uppercase tracking-[0.22em] text-[#565c84]">Assign To</label>
-                    <select
-                      value={assignedTo}
-                      onChange={(e) => setAssignedTo(e.target.value)}
-                      className="zd-select"
-                    >
-                      <option value="">Select a team member</option>
-                      {members.map((member) => (
-                        <option key={member._id} value={member._id}>
-                          {member.name} {member.roleTitle ? `(${member.roleTitle})` : `(${member.role})`}
-                        </option>
-                      ))}
-                    </select>
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div>
+                      <label className="mb-2 block text-[11px] font-bold uppercase tracking-[0.22em] text-[#565c84]">Assign To</label>
+                      <select
+                        value={assignedTo}
+                        onChange={(e) => setAssignedTo(e.target.value)}
+                        className="zd-select"
+                      >
+                        <option value="">Select a team member</option>
+                        {members.map((member) => (
+                          <option key={member._id} value={member._id}>
+                            {member.name} {member.roleTitle ? `(${member.roleTitle})` : `(${member.role})`}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="mb-2 block text-[11px] font-bold uppercase tracking-[0.22em] text-[#565c84]">Last date to complete</label>
+                      <input
+                        type="date"
+                        value={dueDate}
+                        onChange={(e) => setDueDate(e.target.value)}
+                        className="zd-input"
+                      />
+                    </div>
                   </div>
                   <button
                     type="submit"
@@ -466,6 +499,18 @@ export default function DashboardPage() {
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                 </svg>
                                 Created by {task.createdBy?.name || 'Unknown'}
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10m-11 9h12a2 2 0 002-2V7a2 2 0 00-2-2H6a2 2 0 00-2 2v11a2 2 0 002 2z" />
+                                </svg>
+                                Created at {formatDateTime(task.createdAt)}
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                Last date {formatDate(task.dueDate)}
                               </span>
                               {task.assignedTo && (
                                 <span className="flex items-center gap-1.5 rounded-full bg-[#dbe1ff] px-2.5 py-1 font-semibold text-[#003aa0]">

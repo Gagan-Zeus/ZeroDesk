@@ -1,5 +1,4 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext';
 import { FullGuard } from './guards/RouteGuards';
 
@@ -11,7 +10,6 @@ export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <Toaster position="top-right" toastOptions={{ duration: 4000 }} />
         <Routes>
           {/* Unified landing + auth flow */}
           <Route path="/" element={<UnifiedLanding />} />

@@ -12,7 +12,7 @@ import {
   joinOrg,
 } from '../services/authService';
 import api from '../services/api';
-import toast from 'react-hot-toast';
+import InlineAlert from '../components/InlineAlert';
 
 const API_BASE = import.meta.env.VITE_API_URL || '/api';
 
@@ -63,6 +63,7 @@ export default function UnifiedLanding({ showAuth: initialShowAuth = false }) {
   const [roleTitle, setRoleTitle] = useState('');
   const [orgMode, setOrgMode] = useState('choose');
   const [loading, setLoading] = useState(isOAuthCallback);
+  const [alert, setAlert] = useState(null);
   const [resendCooldown, setResendCooldown] = useState(0);
   const [githubData, setGithubData] = useState({});
   const [animating, setAnimating] = useState(false);
@@ -82,7 +83,7 @@ export default function UnifiedLanding({ showAuth: initialShowAuth = false }) {
           setLoading(true);
           setToken(token);
           const userData = await fetchUser();
-          toast.success('Signed in successfully!');
+          setAlert({ type: 'success', message: 'Signed in successfully!' });
 
           if (!userData?.currentOrganizationId) {
             window.history.replaceState({}, '', '/auth?step=org');
@@ -92,7 +93,7 @@ export default function UnifiedLanding({ showAuth: initialShowAuth = false }) {
             navigate('/dashboard');
           }
         } catch {
-          toast.error('Failed to authenticate');
+          setAlert({ type: 'error', message: 'Failed to authenticate' });
           setShowAuth(true);
           setStep(STEPS.CHOOSE_METHOD);
           oauthProcessedRef.current = false;
@@ -181,7 +182,7 @@ export default function UnifiedLanding({ showAuth: initialShowAuth = false }) {
       const { data } = await checkEmail(email);
       transitionTo(data.exists ? STEPS.PASSWORD_LOGIN : STEPS.PASSWORD_REGISTER);
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Something went wrong');
+      setAlert({ type: 'error', message: err.response?.data?.message || 'Something went wrong' });
     } finally {
       setLoading(false);
     }
@@ -196,7 +197,7 @@ export default function UnifiedLanding({ showAuth: initialShowAuth = false }) {
       setPassword('');
       transitionTo(STEPS.OTP);
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Login failed');
+      setAlert({ type: 'error', message: err.response?.data?.message || 'Login failed' });
     } finally {
       setLoading(false);
     }
@@ -205,7 +206,7 @@ export default function UnifiedLanding({ showAuth: initialShowAuth = false }) {
   const handleRegister = async (e) => {
     e.preventDefault();
     if (password !== confirmPassword) {
-      toast.error('Passwords do not match');
+      setAlert({ type: 'error', message: 'Passwords do not match' });
       return;
     }
     setLoading(true);
@@ -216,7 +217,7 @@ export default function UnifiedLanding({ showAuth: initialShowAuth = false }) {
       setConfirmPassword('');
       transitionTo(STEPS.OTP);
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Registration failed');
+      setAlert({ type: 'error', message: err.response?.data?.message || 'Registration failed' });
     } finally {
       setLoading(false);
     }
@@ -235,7 +236,7 @@ export default function UnifiedLanding({ showAuth: initialShowAuth = false }) {
       setToken(data.preAuthToken);
       transitionTo(STEPS.OTP);
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed');
+      setAlert({ type: 'error', message: err.response?.data?.message || 'Failed' });
     } finally {
       setLoading(false);
     }
@@ -269,7 +270,7 @@ export default function UnifiedLanding({ showAuth: initialShowAuth = false }) {
     e.preventDefault();
     const otpString = otp.join('');
     if (otpString.length !== 6) {
-      toast.error('Enter the full 6-digit code');
+      setAlert({ type: 'error', message: 'Enter the full 6-digit code' });
       return;
     }
     setLoading(true);
@@ -277,12 +278,12 @@ export default function UnifiedLanding({ showAuth: initialShowAuth = false }) {
       const { data } = await verifyOtp(otpString);
       setToken(data.token);
       await fetchUser();
-      toast.success('Verified!');
+      setAlert({ type: 'success', message: 'Verified!' });
       if (!data.user.hasPassword) transitionTo(STEPS.SET_PASSWORD);
       else if (data.user.currentOrganizationId) navigate('/dashboard');
       else transitionTo(STEPS.ORGANIZATION);
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Verification failed');
+      setAlert({ type: 'error', message: err.response?.data?.message || 'Verification failed' });
       setOtp(['', '', '', '', '', '']);
     } finally {
       setLoading(false);
@@ -293,26 +294,26 @@ export default function UnifiedLanding({ showAuth: initialShowAuth = false }) {
     try {
       await resendOtp();
       setResendCooldown(60);
-      toast.success('OTP resent!');
+      setAlert({ type: 'success', message: 'OTP resent!' });
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed');
+      setAlert({ type: 'error', message: err.response?.data?.message || 'Failed' });
     }
   };
 
   const handleSetPassword = async (e) => {
     e.preventDefault();
     if (password !== confirmPassword) {
-      toast.error('Passwords do not match');
+      setAlert({ type: 'error', message: 'Passwords do not match' });
       return;
     }
     setLoading(true);
     try {
       await api.post('/auth/set-password', { password });
-      toast.success('Password set!');
+      setAlert({ type: 'success', message: 'Password set!' });
       await fetchUser();
       transitionTo(STEPS.ORGANIZATION);
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed');
+      setAlert({ type: 'error', message: err.response?.data?.message || 'Failed' });
     } finally {
       setLoading(false);
     }
@@ -328,11 +329,11 @@ export default function UnifiedLanding({ showAuth: initialShowAuth = false }) {
     setLoading(true);
     try {
       const { data } = await createOrg(orgName, roleTitle || 'Owner');
-      toast.success(`Created "${data.organization.name}"!`);
+      setAlert({ type: 'success', message: `Created "${data.organization.name}"!` });
       await fetchUser();
       navigate('/dashboard');
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed');
+      setAlert({ type: 'error', message: err.response?.data?.message || 'Failed' });
     } finally {
       setLoading(false);
     }
@@ -343,11 +344,11 @@ export default function UnifiedLanding({ showAuth: initialShowAuth = false }) {
     setLoading(true);
     try {
       const { data } = await joinOrg(orgCode, roleTitle);
-      toast.success(`Joined "${data.organization.name}"!`);
+      setAlert({ type: 'success', message: `Joined "${data.organization.name}"!` });
       await fetchUser();
       navigate('/dashboard');
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Invalid code');
+      setAlert({ type: 'error', message: err.response?.data?.message || 'Invalid code' });
     } finally {
       setLoading(false);
     }
@@ -740,6 +741,7 @@ export default function UnifiedLanding({ showAuth: initialShowAuth = false }) {
             <div className={`w-full max-w-[560px] transition-all duration-150 ${animating ? 'translate-y-2 opacity-0' : 'translate-y-0 opacity-100'}`}>
               <div className="rounded-[32px] border border-[#c5c5d4]/20 bg-[#f2f3ff] p-3 shadow-[0px_24px_60px_rgba(19,27,46,0.08)]">
                 <div className="rounded-[28px] bg-white p-6 md:p-8">
+                  <InlineAlert alert={alert} onDismiss={() => setAlert(null)} className="mb-6" />
                   {loading && isOAuthCallback ? (
                     <div className="py-24 text-center">
                       <p className="text-sm font-medium text-[#565c84]">Authenticating your workspace access...</p>
