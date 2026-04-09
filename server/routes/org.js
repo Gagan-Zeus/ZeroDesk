@@ -1,5 +1,5 @@
 const router = require('express').Router();
-const { authenticate, requireOtpVerified } = require('../middleware/auth');
+const { authenticate, requireFullToken, requireOtpVerified } = require('../middleware/auth');
 const { validate } = require('../middleware/validate');
 const {
   createOrg,
@@ -18,7 +18,7 @@ const {
 } = require('../controllers/orgController');
 
 // All org routes require auth + OTP verified
-router.use(authenticate, requireOtpVerified);
+router.use(authenticate, requireFullToken, requireOtpVerified);
 
 router.post('/create', createOrgValidation, validate, createOrg);
 router.post('/join', joinOrgValidation, validate, joinOrg);

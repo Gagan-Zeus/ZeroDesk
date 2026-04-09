@@ -11,10 +11,31 @@ const getUserRole = async (userId, orgId) => {
   return member?.role || null;
 };
 
+const isOrganizationMember = (org, userId) =>
+  !!org?.members.some((member) => member.userId.toString() === userId.toString());
+
+const validateAssignment = (org, assignedTo) => {
+  if (!assignedTo) {
+    return { valid: true, normalizedAssignee: null };
+  }
+
+  const isMember = isOrganizationMember(org, assignedTo);
+  if (!isMember) {
+    return { valid: false, message: 'Tasks can only be assigned to members of the current organization.' };
+  }
+
+  return { valid: true, normalizedAssignee: assignedTo };
+};
+
 // GET /api/tasks — List tasks for current organization
 const listTasks = async (req, res, next) => {
   try {
     const orgId = req.organizationId;
+    const userRole = await getUserRole(req.user._id, orgId);
+
+    if (!userRole) {
+      return res.status(403).json({ message: 'You do not have access to this organization.' });
+    }
 
     // All members of the organization can see all org tasks
     const tasks = await Task.find({ organizationId: orgId })
@@ -32,17 +53,25 @@ const listTasks = async (req, res, next) => {
 const createTask = async (req, res, next) => {
   try {
     const { title, description, status, assignedTo, dueDate } = req.body;
-    const userRole = await getUserRole(req.user._id, req.organizationId);
+    const organization = await Organization.findById(req.organizationId);
+    const userRole = organization
+      ? organization.members.find((member) => member.userId.toString() === req.user._id.toString())?.role || null
+      : null;
 
     if (!['OWNER', 'ADMIN'].includes(userRole)) {
       return res.status(403).json({ message: 'Only owners and admins can create tasks.' });
+    }
+
+    const assignment = validateAssignment(organization, assignedTo);
+    if (!assignment.valid) {
+      return res.status(400).json({ message: assignment.message });
     }
 
     const task = await Task.create({
       title,
       description,
       status,
-      assignedTo: assignedTo || null,
+      assignedTo: assignment.normalizedAssignee,
       dueDate: dueDate || null,
       createdBy: req.user._id,
       organizationId: req.organizationId,
@@ -53,12 +82,11 @@ const createTask = async (req, res, next) => {
       .populate('createdBy', 'name email');
 
     if (populatedTask?.assignedTo?.email) {
-      const org = await Organization.findById(req.organizationId).select('name');
       sendTaskAssignedEmail({
         to: populatedTask.assignedTo.email,
         assigneeName: populatedTask.assignedTo.name,
         createdByName: populatedTask.createdBy?.name,
-        organizationName: org?.name,
+        organizationName: organization?.name,
         task: populatedTask,
       }).catch((emailErr) => {
         console.error('Failed to send task assignment email:', emailErr);
@@ -83,7 +111,10 @@ const updateTask = async (req, res, next) => {
       return res.status(404).json({ message: 'Task not found.' });
     }
 
-    const userRole = await getUserRole(req.user._id, req.organizationId);
+    const organization = await Organization.findById(req.organizationId);
+    const userRole = organization
+      ? organization.members.find((member) => member.userId.toString() === req.user._id.toString())?.role || null
+      : null;
     const isAssignedUser = task.assignedTo?.toString() === req.user._id.toString();
     const isOwnerOrAdmin = ['OWNER', 'ADMIN'].includes(userRole);
 
@@ -101,14 +132,29 @@ const updateTask = async (req, res, next) => {
       return res.status(403).json({ message: 'Only owners and admins can edit task details.' });
     }
 
+    if (!userRole) {
+      return res.status(403).json({ message: 'You do not have access to this organization.' });
+    }
+
+    if (assignedTo !== undefined) {
+      const assignment = validateAssignment(organization, assignedTo);
+      if (!assignment.valid) {
+        return res.status(400).json({ message: assignment.message });
+      }
+      task.assignedTo = assignment.normalizedAssignee;
+    }
+
     if (title !== undefined) task.title = title;
     if (description !== undefined) task.description = description;
     if (status !== undefined) task.status = status;
-    if (assignedTo !== undefined && isOwnerOrAdmin) task.assignedTo = assignedTo;
     if (dueDate !== undefined && isOwnerOrAdmin) task.dueDate = dueDate || null;
 
     await task.save();
-    return res.json({ task });
+    const populatedTask = await Task.findById(task._id)
+      .populate('assignedTo', 'name email avatar')
+      .populate('createdBy', 'name email');
+
+    return res.json({ task: populatedTask });
   } catch (err) {
     next(err);
   }

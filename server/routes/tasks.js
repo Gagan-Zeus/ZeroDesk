@@ -1,5 +1,5 @@
 const router = require('express').Router();
-const { authenticate, requireOtpVerified, requireOrganization } = require('../middleware/auth');
+const { authenticate, requireFullToken, requireOtpVerified, requireOrganization } = require('../middleware/auth');
 const { validate } = require('../middleware/validate');
 const {
   listTasks,
@@ -11,7 +11,7 @@ const {
 } = require('../controllers/taskController');
 
 // All task routes require auth + OTP + org
-router.use(authenticate, requireOtpVerified, requireOrganization);
+router.use(authenticate, requireFullToken, requireOtpVerified, requireOrganization);
 
 router.get('/', listTasks);
 router.post('/', createTaskValidation, validate, createTask);

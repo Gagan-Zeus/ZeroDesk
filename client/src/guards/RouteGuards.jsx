@@ -7,7 +7,7 @@ export function AuthGuard() {
   const location = useLocation();
 
   if (loading) return <LoadingScreen />;
-  if (!isAuthenticated) return <Navigate to="/login" state={{ from: location }} replace />;
+  if (!isAuthenticated) return <Navigate to="/auth" state={{ from: location }} replace />;
   return <Outlet />;
 }
 
@@ -17,8 +17,8 @@ export function OtpGuard() {
   const location = useLocation();
 
   if (loading) return <LoadingScreen />;
-  if (!isAuthenticated) return <Navigate to="/login" state={{ from: location }} replace />;
-  if (!isOtpVerified) return <Navigate to="/auth/otp" replace />;
+  if (!isAuthenticated) return <Navigate to="/auth" state={{ from: location }} replace />;
+  if (!isOtpVerified) return <Navigate to="/auth" replace />;
   return <Outlet />;
 }
 
@@ -28,9 +28,9 @@ export function FullGuard() {
   const location = useLocation();
 
   if (loading) return <LoadingScreen />;
-  if (!isAuthenticated) return <Navigate to="/login" state={{ from: location }} replace />;
-  if (!isOtpVerified) return <Navigate to="/auth/otp" replace />;
-  if (!hasOrganization) return <Navigate to="/onboarding/org" replace />;
+  if (!isAuthenticated) return <Navigate to="/auth" state={{ from: location }} replace />;
+  if (!isOtpVerified) return <Navigate to="/auth" replace />;
+  if (!hasOrganization) return <Navigate to="/auth?step=org" replace />;
   return <Outlet />;
 }
 

@@ -1,7 +1,7 @@
 const router = require('express').Router();
 const passport = require('passport');
 const { validate } = require('../middleware/validate');
-const { authenticate } = require('../middleware/auth');
+const { authenticate, requireFullToken, requireOtpVerified } = require('../middleware/auth');
 const { authRateLimiter } = require('../middleware/rateLimiter');
 const {
   checkEmail,
@@ -50,12 +50,12 @@ router.post('/github/complete-email', authRateLimiter, githubEmailValidation, va
 router.get('/me', authenticate, getMe);
 
 // Set password (for OAuth users)
-router.post('/set-password', authenticate, setPasswordValidation, validate, setPassword);
+router.post('/set-password', authenticate, requireFullToken, requireOtpVerified, setPasswordValidation, validate, setPassword);
 
 // Update profile
-router.put('/profile', authenticate, updateProfileValidation, validate, updateProfile);
+router.put('/profile', authenticate, requireFullToken, requireOtpVerified, updateProfileValidation, validate, updateProfile);
 
 // Change password
-router.put('/password', authenticate, changePasswordValidation, validate, changePassword);
+router.put('/password', authenticate, requireFullToken, requireOtpVerified, changePasswordValidation, validate, changePassword);
 
 module.exports = router;

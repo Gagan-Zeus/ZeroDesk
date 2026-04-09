@@ -22,23 +22,14 @@ const register = async (req, res, next) => {
   try {
     const { name, email, password } = req.body;
 
-    const existing = await User.findOne({ email });
+    const existing = await User.findOne({ email }).select('+password');
     if (existing) {
-      // If OAuth user exists without a password, let them set one
-      if (!existing.password || existing.authProvider !== 'local') {
-        existing.password = password;
-        if (!existing.name || existing.name === existing.email) existing.name = name;
-        await existing.save();
-
-        const preAuthToken = signPreAuthToken({ userId: existing._id, email: existing.email });
-        await createAndSendOtp(email, existing._id, 'email_verification');
-
-        return res.status(200).json({
-          message: 'Password set. OTP sent to email.',
-          preAuthToken,
-          user: { id: existing._id, name: existing.name, email: existing.email },
+      if (existing.authProvider !== 'local' && !existing.password) {
+        return res.status(409).json({
+          message: `This email already exists through ${existing.authProvider}. Sign in with that provider first, then set a password from your profile.`,
         });
       }
+
       return res.status(409).json({ message: 'Email already registered. Please sign in.' });
     }
 
@@ -143,6 +134,19 @@ const githubCompleteEmail = async (req, res, next) => {
         authProvider: 'github',
         oauthId: githubId,
       });
+    } else {
+      const isMatchingGithubAccount =
+        user.authProvider === 'github' && (!user.oauthId || user.oauthId === githubId);
+
+      if (!isMatchingGithubAccount) {
+        return res.status(409).json({
+          message: 'This email is already linked to another sign-in method. Please use that method instead.',
+        });
+      }
+
+      user.name = user.name || name;
+      user.avatar = user.avatar || avatar;
+      user.oauthId = user.oauthId || githubId;
     }
 
     user.isOtpVerified = false;

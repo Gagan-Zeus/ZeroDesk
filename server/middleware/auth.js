@@ -23,6 +23,16 @@ const authenticate = async (req, res, next) => {
   }
 };
 
+const requireTokenScope = (...allowedScopes) => (req, res, next) => {
+  if (!allowedScopes.includes(req.tokenScope)) {
+    return res.status(403).json({ message: 'This action is not allowed for the current session.' });
+  }
+  next();
+};
+
+const requireFullToken = requireTokenScope('full');
+const requirePreAuthToken = requireTokenScope('pre_auth');
+
 // Ensure OTP has been verified for the current session
 const requireOtpVerified = (req, res, next) => {
   if (!req.user.isOtpVerified) {
@@ -57,4 +67,12 @@ const requireOwner = (req, res, next) => {
   next();
 };
 
-module.exports = { authenticate, requireOtpVerified, requireOrganization, requireOwner };
+module.exports = {
+  authenticate,
+  requireTokenScope,
+  requireFullToken,
+  requirePreAuthToken,
+  requireOtpVerified,
+  requireOrganization,
+  requireOwner,
+};
