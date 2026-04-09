@@ -44,40 +44,74 @@ function getCroppedImg(image, crop, fileName) {
   });
 }
 
+function GoogleIcon({ className = 'w-6 h-6' }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" aria-hidden="true">
+      <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+      <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+      <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+      <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+    </svg>
+  );
+}
+
+function GithubIcon({ className = 'w-6 h-6' }) {
+  return (
+    <svg className={className} fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 0C5.373 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234C5.662 21.302 4.967 19.16 4.967 19.16c-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.108-.775.418-1.304.762-1.604-2.665-.304-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.536-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.52 11.52 0 0112 6.844c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.769.84 1.235 1.91 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.565 21.798 24 17.302 24 12 24 5.373 18.627 0 12 0z" />
+    </svg>
+  );
+}
+
+function MailIcon({ className = 'w-5 h-5' }) {
+  return (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l9 6 9-6m-18 8h18a2 2 0 002-2V8a2 2 0 00-2-2H3a2 2 0 00-2 2v6a2 2 0 002 2z" />
+    </svg>
+  );
+}
+
+function ZeroDeskLogo({ className = 'h-10 w-10' }) {
+  return (
+    <div className={`flex items-center justify-center rounded-2xl bg-gradient-to-br from-[#003aa0] to-[#004fd2] text-white shadow-[0px_12px_32px_rgba(0,58,160,0.18)] ${className}`}>
+      <span className="font-headline text-sm font-extrabold tracking-tight">Z</span>
+    </div>
+  );
+}
+
 export default function ProfilePage() {
   const { user, fetchUser, logout } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState(TABS.PROFILE);
   const [isVisible, setIsVisible] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
-  
-  // Profile state
+
   const [name, setName] = useState(user?.name || '');
   const [saving, setSaving] = useState(false);
-  
-  // Avatar state
+
   const [imageSrc, setImageSrc] = useState(null);
   const [crop, setCrop] = useState({ unit: '%', width: 80, aspect: 1 });
   const [completedCrop, setCompletedCrop] = useState(null);
   const [showCropModal, setShowCropModal] = useState(false);
   const imgRef = useRef(null);
   const fileInputRef = useRef(null);
-  
-  // Password state
+
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [changingPassword, setChangingPassword] = useState(false);
-  
-  // Organization members state
+
   const [members, setMembers] = useState([]);
   const [loadingMembers, setLoadingMembers] = useState(false);
 
-  // Entry animation
   useEffect(() => {
     const timer = setTimeout(() => setIsVisible(true), 10);
     return () => clearTimeout(timer);
   }, []);
+
+  useEffect(() => {
+    setName(user?.name || '');
+  }, [user?.name]);
 
   useEffect(() => {
     if (activeTab === TABS.ORGANIZATION) {
@@ -119,15 +153,32 @@ export default function ProfilePage() {
     }
   };
 
+  const handleRemoveAvatar = async () => {
+    setSaving(true);
+    try {
+      await updateProfile({ avatar: null });
+      await fetchUser();
+      toast.success('Avatar removed!');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to remove avatar');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDiscardProfileChanges = () => {
+    setName(user?.name || '');
+  };
+
   const handleFileSelect = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    
+
     if (!file.type.startsWith('image/')) {
       toast.error('Please select an image file');
       return;
     }
-    
+
     const reader = new FileReader();
     reader.onload = () => {
       setImageSrc(reader.result);
@@ -142,24 +193,28 @@ export default function ProfilePage() {
     const size = Math.min(width, height);
     const x = (width - size) / 2;
     const y = (height - size) / 2;
-    setCrop({
+    const initialCrop = {
       unit: 'px',
       width: size * 0.8,
       height: size * 0.8,
       x: x + size * 0.1,
       y: y + size * 0.1,
-    });
+    };
+    setCrop(initialCrop);
+    setCompletedCrop(initialCrop);
   }, []);
 
   const handleCropComplete = async () => {
-    if (!imgRef.current || !completedCrop) {
+    const activeCrop = completedCrop?.width && completedCrop?.height ? completedCrop : crop;
+
+    if (!imgRef.current || !activeCrop?.width || !activeCrop?.height) {
       toast.error('Please select a crop area');
       return;
     }
-    
+
     setSaving(true);
     try {
-      const croppedBlob = await getCroppedImg(imgRef.current, completedCrop, 'avatar.jpg');
+      const croppedBlob = await getCroppedImg(imgRef.current, activeCrop, 'avatar.jpg');
       const reader = new FileReader();
       reader.onload = async () => {
         const base64 = reader.result;
@@ -195,7 +250,7 @@ export default function ProfilePage() {
       toast.error('Password must contain a number');
       return;
     }
-    
+
     setChangingPassword(true);
     try {
       await changePassword({ currentPassword, newPassword });
@@ -218,384 +273,476 @@ export default function ProfilePage() {
     .slice(0, 2);
 
   const currentOrgData = user?.organizations?.find(
-    (o) => o.orgId?.toString() === user.currentOrganizationId?.toString()
+    (o) => o.orgId?.toString() === user?.currentOrganizationId?.toString()
   );
-  const providerLabel = user?.authProvider === 'local' ? 'email' : user?.authProvider;
+
+  const providerLabel = !user?.authProvider || user.authProvider === 'local'
+    ? 'Email'
+    : user.authProvider.charAt(0).toUpperCase() + user.authProvider.slice(1);
+
+  const providerDescription =
+    providerLabel === 'Google'
+      ? 'Your account is linked to your enterprise Google Workspace.'
+      : providerLabel === 'Github'
+        ? 'Your account is linked to your enterprise GitHub workspace.'
+        : 'Your account uses your email and password credentials.';
+
+  const activeTabLabel =
+    activeTab === TABS.PROFILE ? 'Profile' : activeTab === TABS.PASSWORD ? 'Password' : 'Organization';
 
   const sidebarItemClass = (tab) =>
-    `w-full text-left px-4 py-3 rounded-xl transition-all flex items-center gap-3 ${
+    `flex w-full items-center gap-3 px-4 py-3 text-left transition-colors duration-200 ${
       activeTab === tab
-        ? 'bg-brand-50 text-brand-600 font-medium'
-        : 'text-gray-600 hover:bg-gray-100'
+        ? 'rounded-l-xl bg-white text-[#003aa0] shadow-sm'
+        : 'text-[#565c84] hover:text-[#003aa0]'
     }`;
 
-  const inputClass = 'w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none transition-all';
-  const btnClass = 'px-6 py-3 bg-brand-600 text-white rounded-xl hover:bg-brand-700 transition-all font-medium disabled:opacity-50';
+  const inputClass = 'w-full rounded-xl border border-[#c5c5d4]/20 bg-white px-4 py-3 font-body text-[#131b2e] outline-none transition-all focus:border-[#003aa0] focus:ring-2 focus:ring-[#003aa0]/10';
+  const sectionCardClass = 'overflow-hidden rounded-xl border border-[#c5c5d4]/10 bg-white shadow-[0px_12px_32px_rgba(19,27,46,0.04)]';
+  const primaryBtnClass = 'rounded-xl bg-gradient-to-br from-[#003aa0] to-[#004fd2] px-8 py-3 font-bold text-white shadow-lg shadow-[#003aa0]/20 transition-all active:scale-95 disabled:opacity-50';
 
   return (
-    <div 
-      className={`fixed inset-0 bg-gray-50 z-50 transition-all duration-300 ease-out ${
+    <div
+      className={`min-h-screen bg-[#faf8ff] transition-opacity duration-300 ease-out ${
         isVisible && !isExiting ? 'opacity-100' : 'opacity-0'
       }`}
     >
-      <div 
-        className={`min-h-screen flex transition-all duration-300 ease-out ${
-          isVisible && !isExiting ? 'translate-x-0' : 'translate-x-full'
-        }`}
+      <div
+        className="min-h-screen"
       >
-        {/* Left Sidebar */}
-        <aside className="w-72 bg-white border-r border-gray-200 flex flex-col h-screen sticky top-0">
-          {/* Header */}
-          <div className="p-6 border-b border-gray-100">
+        <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col space-y-2 border-r border-[#c5c5d4]/10 bg-[#f2f3ff] p-4 md:flex">
+          <div className="mb-4 px-4 py-6">
+            <button
+              onClick={handleBack}
+              className="mb-5 inline-flex items-center gap-2 text-sm font-medium text-[#565c84] transition hover:text-[#003aa0]"
+            >
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              Back
+            </button>
             <div className="flex items-center gap-3">
-              <button
-                onClick={handleBack}
-                className="p-2 hover:bg-gray-100 rounded-lg transition"
-              >
-                <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-              </button>
-              <h1 className="text-lg font-bold text-gray-900">Settings</h1>
-            </div>
-          </div>
-
-          {/* User Info */}
-          <div className="p-6 border-b border-gray-100">
-            <div className="flex items-center gap-4">
-              {user?.avatar ? (
-                <img src={user.avatar} alt="" className="w-12 h-12 rounded-full object-cover border-2 border-gray-100" />
-              ) : (
-                <div className="w-12 h-12 rounded-full bg-brand-600 text-white flex items-center justify-center text-lg font-bold">
-                  {initials}
-                </div>
-              )}
-              <div className="flex-1 min-w-0">
-                <p className="font-semibold text-gray-900 truncate">{user?.name}</p>
-                <p className="text-sm text-gray-500 truncate">{user?.email}</p>
+              <ZeroDeskLogo className="h-11 w-11" />
+              <div>
+                <h1 className="font-headline text-lg font-bold text-[#131b2e]">ZeroDesk</h1>
+                <p className="text-xs text-[#565c84] opacity-70">Enterprise Settings</p>
               </div>
             </div>
           </div>
 
-          {/* Navigation */}
-          <nav className="flex-1 p-4 space-y-1">
+          <nav className="flex-1 space-y-1">
             <button className={sidebarItemClass(TABS.PROFILE)} onClick={() => setActiveTab(TABS.PROFILE)}>
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 12a4 4 0 100-8 4 4 0 000 8zm0 2c-4.418 0-8 1.79-8 4v1h16v-1c0-2.21-3.582-4-8-4z" />
               </svg>
-              Profile
+              <span className="font-body text-sm font-medium">Profile</span>
             </button>
             <button className={sidebarItemClass(TABS.PASSWORD)} onClick={() => setActiveTab(TABS.PASSWORD)}>
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V8a4 4 0 118 0v3m-9 0h10a2 2 0 012 2v6H5v-6a2 2 0 012-2z" />
               </svg>
-              Password
+              <span className="font-body text-sm font-medium">Password</span>
             </button>
             <button className={sidebarItemClass(TABS.ORGANIZATION)} onClick={() => setActiveTab(TABS.ORGANIZATION)}>
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 21h18M5 21V7l7-4 7 4v14M9 9h.01M9 13h.01M9 17h.01M15 9h.01M15 13h.01M15 17h.01" />
               </svg>
-              Organization
+              <span className="font-body text-sm font-medium">Organization</span>
             </button>
           </nav>
 
-          {/* Sign Out */}
-          <div className="p-4 border-t border-gray-100">
+          <div className="mt-auto space-y-1 border-t border-[#c5c5d4]/10 pt-6">
+            <button
+              type="button"
+              className="mb-4 w-full rounded-xl bg-gradient-to-br from-[#003aa0] to-[#004fd2] px-4 py-2.5 text-sm font-semibold text-white shadow-md transition-all active:scale-95"
+            >
+              Invite Member
+            </button>
+            <button
+              type="button"
+              className="flex w-full items-center gap-3 px-4 py-3 text-[#565c84] transition-colors duration-200 hover:text-[#003aa0]"
+            >
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 1.76-2 3.272-2 2.071 0 3.75 1.567 3.75 3.5 0 1.324-.788 2.476-1.953 3.078-.41.212-.797.612-.797 1.047V15m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span className="font-body text-sm font-medium">Support</span>
+            </button>
             <button
               onClick={logout}
-              className="w-full text-left px-4 py-3 rounded-xl text-red-600 hover:bg-red-50 transition flex items-center gap-3"
+              className="flex w-full items-center gap-3 px-4 py-3 text-[#565c84] transition-colors duration-200 hover:text-[#003aa0]"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H9m4 4v1a2 2 0 01-2 2H6a2 2 0 01-2-2V7a2 2 0 012-2h5a2 2 0 012 2v1" />
               </svg>
-              Sign Out
+              <span className="font-body text-sm font-medium">Sign Out</span>
             </button>
           </div>
         </aside>
 
-        {/* Main Content */}
-        <main className="flex-1 overflow-y-auto">
-          <div className="max-w-3xl mx-auto p-8">
-            {/* Profile Tab */}
+        <main className="min-h-screen flex flex-col md:pl-64">
+          <header className="sticky top-0 z-40 flex items-center justify-between bg-[#faf8ff] px-8 py-4 shadow-[0px_12px_32px_rgba(19,27,46,0.04)]">
+            <div className="flex items-center gap-4">
+              <button
+                onClick={handleBack}
+                className="rounded-full p-2 text-[#565c84] transition hover:bg-[#f2f3ff] md:hidden"
+              >
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              <h2 className="font-headline text-base font-bold tracking-[-0.02em] text-[#003aa0]">{activeTabLabel}</h2>
+            </div>
+
+            <div className="flex items-center gap-6">
+              {user?.avatar ? (
+                <img src={user.avatar} alt="" className="h-10 w-10 rounded-full border-2 border-[#004fd2]/20 object-cover" />
+              ) : (
+                <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-[#004fd2]/20 bg-[#dbe1ff] text-sm font-bold text-[#003aa0]">
+                  {initials}
+                </div>
+              )}
+            </div>
+          </header>
+
+          <div className="mx-auto flex w-full max-w-4xl flex-1 flex-col px-6 py-12">
             {activeTab === TABS.PROFILE && (
-              <div className="space-y-8 animate-fadeIn">
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-900">Profile</h2>
-                  <p className="text-gray-500 mt-1">Manage your personal information</p>
+              <div className="space-y-12 animate-fadeIn">
+                <div className="space-y-2">
+                  <h3 className="font-headline text-3xl font-extrabold tracking-tight text-[#131b2e]">Manage your personal information</h3>
+                  <p className="max-w-xl font-body text-[#565c84]">
+                    Updates your profile details and control how you are visible within the ZeroDesk enterprise ecosystem.
+                  </p>
                 </div>
 
-                {/* Avatar Section */}
-                <div className="bg-white rounded-2xl border border-gray-200 p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Profile Picture</h3>
-                  <div className="flex items-center gap-6">
-                    <div className="relative">
-                      {user?.avatar ? (
-                        <img src={user.avatar} alt="" className="w-24 h-24 rounded-full object-cover border-4 border-gray-100" />
-                      ) : (
-                        <div className="w-24 h-24 rounded-full bg-brand-600 text-white flex items-center justify-center text-2xl font-bold border-4 border-gray-100">
-                          {initials}
-                        </div>
-                      )}
-                    </div>
-                    <div>
-                      <input
-                        type="file"
-                        ref={fileInputRef}
-                        onChange={handleFileSelect}
-                        accept="image/*"
-                        className="hidden"
-                      />
+                <section className="flex flex-col items-center gap-8 rounded-xl border border-[#c5c5d4]/10 bg-white p-8 shadow-[0px_12px_32px_rgba(19,27,46,0.04)] md:flex-row">
+                  <div className="relative group">
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="absolute bottom-0 right-0 z-10 rounded-full bg-[#003aa0] p-2 text-white shadow-lg transition-transform hover:scale-105"
+                    >
+                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536M9 13l6.768-6.768a2.5 2.5 0 113.536 3.536L12.536 16.536A4 4 0 019.707 17.707L6 18l.293-3.707A4 4 0 017.464 11.464L9 13z" />
+                      </svg>
+                    </button>
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handleFileSelect}
+                      accept="image/*"
+                      className="hidden"
+                    />
+                    {user?.avatar ? (
+                      <img src={user.avatar} alt="" className="h-32 w-32 rounded-full object-cover ring-4 ring-[#004fd2]/5" />
+                    ) : (
+                      <div className="flex h-32 w-32 items-center justify-center rounded-full bg-[#dbe1ff] text-3xl font-bold text-[#003aa0] ring-4 ring-[#004fd2]/5">
+                        {initials}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex-1 space-y-4 text-center md:text-left">
+                    <h4 className="font-headline text-lg font-bold text-[#131b2e]">Profile Photo</h4>
+                    <p className="text-sm text-[#565c84]">Recommended: 400x400px. JPG, PNG or WebP max 5MB.</p>
+                    <div className="flex flex-wrap justify-center gap-3 md:justify-start">
                       <button
+                        type="button"
                         onClick={() => fileInputRef.current?.click()}
-                        className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition font-medium text-sm"
+                        className="rounded-xl bg-[#e2e7ff] px-5 py-2.5 text-sm font-semibold text-[#003aa0] transition-colors hover:bg-[#dae2fd]"
                       >
                         Upload New Photo
                       </button>
-                      <p className="text-xs text-gray-500 mt-2">JPG, PNG or GIF. Max 5MB.</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Name Section */}
-                <div className="bg-white rounded-2xl border border-gray-200 p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Personal Information</h3>
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
-                      <input
-                        type="text"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        className={inputClass}
-                        placeholder="Your name"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
-                      <input
-                        type="email"
-                        value={user?.email || ''}
-                        disabled
-                        className={`${inputClass} bg-gray-50 text-gray-500 cursor-not-allowed`}
-                      />
-                      <p className="text-xs text-gray-500 mt-1">Email cannot be changed</p>
-                    </div>
-                    <div className="pt-2">
-                      <button onClick={handleSaveProfile} disabled={saving} className={btnClass}>
-                        {saving ? 'Saving...' : 'Save Changes'}
+                      <button
+                        type="button"
+                        onClick={handleRemoveAvatar}
+                        disabled={!user?.avatar || saving}
+                        className="rounded-xl px-5 py-2.5 text-sm font-semibold text-[#ba1a1a] transition-colors hover:bg-[#ffdad6]/20 disabled:opacity-40"
+                      >
+                        Remove
                       </button>
                     </div>
                   </div>
-                </div>
+                </section>
 
-                {/* Auth Provider Info */}
-                <div className="bg-white rounded-2xl border border-gray-200 p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Account</h3>
-                  <div className="flex items-center gap-3">
-                    <span className="text-sm text-gray-600">Signed in with:</span>
-                    <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-gray-100 rounded-full text-sm font-medium text-gray-700 capitalize">
-                      {user?.authProvider === 'google' && (
-                        <svg className="w-4 h-4" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-                      )}
-                      {user?.authProvider === 'github' && (
-                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
-                      )}
-                      {user?.authProvider === 'local' && (
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
-                      )}
-                      {providerLabel}
-                    </span>
+                <section className={sectionCardClass}>
+                  <div className="border-b border-[#c5c5d4]/10 bg-[#f2f3ff]/50 px-8 py-6">
+                    <h4 className="font-headline text-lg font-bold text-[#131b2e]">Personal Information</h4>
                   </div>
-                </div>
-              </div>
-            )}
 
-            {/* Password Tab */}
-            {activeTab === TABS.PASSWORD && (
-              <div className="space-y-8 animate-fadeIn">
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-900">Password</h2>
-                  <p className="text-gray-500 mt-1">Update your password to keep your account secure</p>
-                </div>
-
-                <div className="bg-white rounded-2xl border border-gray-200 p-6">
-                  {user?.authProvider !== 'local' && !user?.hasPassword ? (
-                    <div className="text-center py-8">
-                      <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                        </svg>
-                      </div>
-                      <p className="text-gray-600 mb-2">You signed in with {providerLabel}</p>
-                      <p className="text-sm text-gray-500">You can set a password to also sign in with email</p>
-                    </div>
-                  ) : (
-                    <form onSubmit={handleChangePassword} className="space-y-4 max-w-md">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Current Password</label>
+                  <div className="space-y-6 p-8">
+                    <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                      <div className="space-y-2">
+                        <label className="block text-xs font-semibold uppercase tracking-widest text-[#565c84]">Full Name</label>
                         <input
-                          type="password"
-                          value={currentPassword}
-                          onChange={(e) => setCurrentPassword(e.target.value)}
-                          required
+                          type="text"
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
                           className={inputClass}
-                          placeholder="Enter current password"
+                          placeholder="Your name"
                         />
                       </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">New Password</label>
-                        <input
-                          type="password"
-                          value={newPassword}
-                          onChange={(e) => setNewPassword(e.target.value)}
-                          required
-                          minLength={8}
-                          className={inputClass}
-                          placeholder="Enter new password"
-                        />
-                        <p className="mt-1 text-xs text-gray-500">
-                          Must be at least 8 characters with an uppercase letter and a number
-                        </p>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Confirm New Password</label>
-                        <input
-                          type="password"
-                          value={confirmPassword}
-                          onChange={(e) => setConfirmPassword(e.target.value)}
-                          required
-                          minLength={8}
-                          className={inputClass}
-                          placeholder="Confirm new password"
-                        />
-                      </div>
-                      <div className="pt-2">
-                        <button type="submit" disabled={changingPassword} className={btnClass}>
-                          {changingPassword ? 'Changing...' : 'Change Password'}
-                        </button>
-                      </div>
-                    </form>
-                  )}
-                </div>
-              </div>
-            )}
 
-            {/* Organization Tab */}
-            {activeTab === TABS.ORGANIZATION && (
-              <div className="space-y-8 animate-fadeIn">
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-900">Organization</h2>
-                  <p className="text-gray-500 mt-1">View organization details and team members</p>
-                </div>
-
-                {/* Org Info */}
-                <div className="bg-white rounded-2xl border border-gray-200 p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Organization Details</h3>
-                  {currentOrgData ? (
-                    <div className="grid grid-cols-2 gap-6">
-                      <div>
-                        <p className="text-sm text-gray-500">Organization Name</p>
-                        <p className="font-medium text-gray-900 mt-1">{members[0]?.orgName || 'N/A'}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-500">Your Role</p>
-                        <div className="flex items-center gap-2 mt-1">
-                          <span className={`inline-flex px-2 py-0.5 text-xs rounded-full font-medium ${
-                            currentOrgData.role === 'OWNER' ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-600'
-                          }`}>
-                            {currentOrgData.role}
-                          </span>
-                          {currentOrgData.roleTitle && (
-                            <span className="text-sm text-gray-700">{currentOrgData.roleTitle}</span>
-                          )}
+                      <div className="space-y-2">
+                        <label className="block text-xs font-semibold uppercase tracking-widest text-[#565c84]">Email Address</label>
+                        <div className="relative">
+                          <input
+                            type="email"
+                            value={user?.email || ''}
+                            disabled
+                            className={`${inputClass} cursor-not-allowed bg-[#f2f3ff] text-[#565c84]`}
+                          />
+                          <div className="mt-2 flex items-center gap-1.5 text-xs text-[#565c84]/70">
+                            <svg className="h-[14px] w-[14px]" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M18 10A8 8 0 112 10a8 8 0 0116 0zm-8-3a1 1 0 00-.894.553l-1 2A1 1 0 009 11h1v2a1 1 0 102 0V10a1 1 0 00-1-1h-.382l.276-.553A1 1 0 0010 7zm0 7a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+                            </svg>
+                            <span>Email cannot be changed manually. Contact admin.</span>
+                          </div>
                         </div>
                       </div>
-                      <div>
-                        <p className="text-sm text-gray-500">Invite Code</p>
-                        <div className="flex items-center gap-2 mt-1">
-                          <code className="font-mono text-brand-600 font-bold text-lg">{members[0]?.orgCode || 'N/A'}</code>
-                          <button
-                            onClick={() => {
-                              navigator.clipboard.writeText(members[0]?.orgCode || '');
-                              toast.success('Code copied!');
-                            }}
-                            className="text-xs text-brand-600 hover:text-brand-700 px-2 py-1 bg-brand-50 rounded-md"
-                          >
-                            Copy
+                    </div>
+
+                    <div className="border-t border-[#c5c5d4]/10 pt-6">
+                      <div className="flex items-start gap-4 rounded-xl bg-[#f2f3ff]/30 p-4">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white shadow-sm text-[#131b2e]">
+                          {user?.authProvider === 'google' ? <GoogleIcon /> : user?.authProvider === 'github' ? <GithubIcon /> : <MailIcon className="w-5 h-5 text-[#003aa0]" />}
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-sm font-semibold text-[#131b2e]">Signed in with {providerLabel}</p>
+                          <p className="text-xs text-[#565c84]">{providerDescription}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                <div className="flex items-center justify-end gap-4 py-6">
+                  <button
+                    type="button"
+                    onClick={handleDiscardProfileChanges}
+                    className="px-6 py-3 font-semibold text-[#565c84] transition-colors hover:text-[#131b2e]"
+                  >
+                    Discard Changes
+                  </button>
+                  <button type="button" onClick={handleSaveProfile} disabled={saving} className={primaryBtnClass}>
+                    {saving ? 'Saving...' : 'Save Changes'}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {activeTab === TABS.PASSWORD && (
+              <div className="space-y-12 animate-fadeIn">
+                <div className="space-y-2">
+                  <h3 className="font-headline text-3xl font-extrabold tracking-tight text-[#131b2e]">Update your password</h3>
+                  <p className="max-w-xl font-body text-[#565c84]">
+                    Keep your workspace secure with a strong password and make sure your account stays protected.
+                  </p>
+                </div>
+
+                <section className={sectionCardClass}>
+                  <div className="border-b border-[#c5c5d4]/10 bg-[#f2f3ff]/50 px-8 py-6">
+                    <h4 className="font-headline text-lg font-bold text-[#131b2e]">Password</h4>
+                  </div>
+
+                  <div className="p-8">
+                    {user?.authProvider !== 'local' && !user?.hasPassword ? (
+                      <div className="rounded-xl bg-[#f2f3ff]/30 p-6 text-center">
+                        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#e2e7ff]">
+                          <svg className="h-8 w-8 text-[#565c84]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                          </svg>
+                        </div>
+                        <p className="mb-2 text-[#565c84]">You signed in with {providerLabel}</p>
+                        <p className="text-sm text-[#565c84]">You can set a password to also sign in with email.</p>
+                      </div>
+                    ) : (
+                      <form onSubmit={handleChangePassword} className="max-w-xl space-y-6">
+                        <div className="space-y-2">
+                          <label className="block text-xs font-semibold uppercase tracking-widest text-[#565c84]">Current Password</label>
+                          <input
+                            type="password"
+                            value={currentPassword}
+                            onChange={(e) => setCurrentPassword(e.target.value)}
+                            required
+                            className={inputClass}
+                            placeholder="Enter current password"
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <label className="block text-xs font-semibold uppercase tracking-widest text-[#565c84]">New Password</label>
+                          <input
+                            type="password"
+                            value={newPassword}
+                            onChange={(e) => setNewPassword(e.target.value)}
+                            required
+                            minLength={8}
+                            className={inputClass}
+                            placeholder="Enter new password"
+                          />
+                          <p className="text-xs text-[#565c84]/70">Must be at least 8 characters with an uppercase letter and a number</p>
+                        </div>
+
+                        <div className="space-y-2">
+                          <label className="block text-xs font-semibold uppercase tracking-widest text-[#565c84]">Confirm New Password</label>
+                          <input
+                            type="password"
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            required
+                            minLength={8}
+                            className={inputClass}
+                            placeholder="Confirm new password"
+                          />
+                        </div>
+
+                        <div className="flex justify-end pt-2">
+                          <button type="submit" disabled={changingPassword} className={primaryBtnClass}>
+                            {changingPassword ? 'Changing...' : 'Save Changes'}
                           </button>
                         </div>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-500">Total Members</p>
-                        <p className="font-medium text-gray-900 mt-1">{members.length}</p>
-                      </div>
-                    </div>
-                  ) : (
-                    <p className="text-gray-500">No organization selected</p>
-                  )}
+                      </form>
+                    )}
+                  </div>
+                </section>
+              </div>
+            )}
+
+            {activeTab === TABS.ORGANIZATION && (
+              <div className="space-y-12 animate-fadeIn">
+                <div className="space-y-2">
+                  <h3 className="font-headline text-3xl font-extrabold tracking-tight text-[#131b2e]">Organization settings</h3>
+                  <p className="max-w-xl font-body text-[#565c84]">
+                    Review the organization you belong to, your role, and the rest of the team in this workspace.
+                  </p>
                 </div>
 
-                {/* Members List */}
-                <div className="bg-white rounded-2xl border border-gray-200 p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Team Members</h3>
-                  {loadingMembers ? (
-                    <div className="text-center py-8 text-gray-500">Loading members...</div>
-                  ) : members.length === 0 ? (
-                    <div className="text-center py-8 text-gray-500">No members found</div>
-                  ) : (
-                    <div className="overflow-x-auto">
-                      <table className="w-full">
-                        <thead>
-                          <tr className="border-b border-gray-200">
-                            <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">Member</th>
-                            <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                            <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                            <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-100">
-                          {members.map((member) => (
-                            <tr key={member._id} className="hover:bg-gray-50">
-                              <td className="py-4 px-4">
-                                <div className="flex items-center gap-3">
-                                  {member.avatar ? (
-                                    <img src={member.avatar} alt="" className="w-9 h-9 rounded-full object-cover" />
-                                  ) : (
-                                    <div className="w-9 h-9 rounded-full bg-brand-100 text-brand-600 flex items-center justify-center text-xs font-bold">
-                                      {(member.name || 'U').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)}
-                                    </div>
-                                  )}
-                                  <span className="font-medium text-gray-900">{member.name}</span>
-                                </div>
-                              </td>
-                              <td className="py-4 px-4 text-sm text-gray-600">{member.email}</td>
-                              <td className="py-4 px-4">
-                                <span className={`inline-flex px-2.5 py-1 text-xs rounded-full font-medium ${
-                                  member.role === 'OWNER' ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-600'
-                                }`}>
-                                  {member.role}
-                                </span>
-                              </td>
-                              <td className="py-4 px-4 text-sm text-gray-700">{member.roleTitle || '-'}</td>
+                <section className={sectionCardClass}>
+                  <div className="border-b border-[#c5c5d4]/10 bg-[#f2f3ff]/50 px-8 py-6">
+                    <h4 className="font-headline text-lg font-bold text-[#131b2e]">Organization Details</h4>
+                  </div>
+
+                  <div className="p-8">
+                    {currentOrgData ? (
+                      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                        <div>
+                          <p className="text-sm text-[#565c84]">Organization Name</p>
+                          <p className="mt-1 font-medium text-[#131b2e]">{members[0]?.orgName || 'N/A'}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-[#565c84]">Your Role</p>
+                          <div className="mt-1 flex items-center gap-2">
+                            <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${
+                              currentOrgData.role === 'OWNER' ? 'bg-amber-100 text-amber-700' : 'bg-[#f2f3ff] text-[#565c84]'
+                            }`}>
+                              {currentOrgData.role}
+                            </span>
+                            {currentOrgData.roleTitle && (
+                              <span className="text-sm text-[#454652]">{currentOrgData.roleTitle}</span>
+                            )}
+                          </div>
+                        </div>
+                        <div>
+                          <p className="text-sm text-[#565c84]">Invite Code</p>
+                          <div className="mt-1 flex items-center gap-2">
+                            <code className="font-mono text-lg font-bold text-[#003aa0]">{members[0]?.orgCode || 'N/A'}</code>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                navigator.clipboard.writeText(members[0]?.orgCode || '');
+                                toast.success('Code copied!');
+                              }}
+                              className="rounded-md bg-[#dbe1ff] px-2 py-1 text-xs text-[#003aa0] transition hover:bg-[#b4c5ff]"
+                            >
+                              Copy
+                            </button>
+                          </div>
+                        </div>
+                        <div>
+                          <p className="text-sm text-[#565c84]">Total Members</p>
+                          <p className="mt-1 font-medium text-[#131b2e]">{members.length}</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-[#565c84]">No organization selected</p>
+                    )}
+                  </div>
+                </section>
+
+                <section className={sectionCardClass}>
+                  <div className="border-b border-[#c5c5d4]/10 bg-[#f2f3ff]/50 px-8 py-6">
+                    <h4 className="font-headline text-lg font-bold text-[#131b2e]">Team Members</h4>
+                  </div>
+
+                  <div className="p-8">
+                    {loadingMembers ? (
+                      <div className="py-8 text-center text-[#565c84]">Loading members...</div>
+                    ) : members.length === 0 ? (
+                      <div className="py-8 text-center text-[#565c84]">No members found</div>
+                    ) : (
+                      <div className="overflow-x-auto">
+                        <table className="w-full">
+                          <thead>
+                            <tr className="border-b border-[#c5c5d4]/10">
+                              <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#565c84]">Member</th>
+                              <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#565c84]">Email</th>
+                              <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#565c84]">Type</th>
+                              <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#565c84]">Role</th>
                             </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
-                </div>
+                          </thead>
+                          <tbody className="divide-y divide-[#c5c5d4]/10">
+                            {members.map((member) => (
+                              <tr key={member._id} className="transition hover:bg-[#f2f3ff]/30">
+                                <td className="px-4 py-4">
+                                  <div className="flex items-center gap-3">
+                                    {member.avatar ? (
+                                      <img src={member.avatar} alt="" className="h-9 w-9 rounded-full object-cover" />
+                                    ) : (
+                                      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#dbe1ff] text-xs font-bold text-[#003aa0]">
+                                        {(member.name || 'U').split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2)}
+                                      </div>
+                                    )}
+                                    <span className="font-medium text-[#131b2e]">{member.name}</span>
+                                  </div>
+                                </td>
+                                <td className="px-4 py-4 text-sm text-[#565c84]">{member.email}</td>
+                                <td className="px-4 py-4">
+                                  <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${
+                                    member.role === 'OWNER' ? 'bg-amber-100 text-amber-700' : 'bg-[#f2f3ff] text-[#565c84]'
+                                  }`}>
+                                    {member.role}
+                                  </span>
+                                </td>
+                                <td className="px-4 py-4 text-sm text-[#454652]">{member.roleTitle || '-'}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+                </section>
               </div>
             )}
           </div>
+
+          <footer className="mt-auto border-t border-[#c5c5d4]/20 bg-[#faf8ff] py-6">
+            <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-8 md:flex-row md:items-center md:justify-between">
+              <span className="text-sm text-[#565c84]">© 2026 ZeroDesk. All rights reserved.</span>
+              <div className="flex items-center gap-3 md:justify-end">
+                <ZeroDeskLogo className="h-8 w-8 rounded-lg" />
+                <span className="font-headline font-bold text-[#131b2e]">ZeroDesk</span>
+              </div>
+            </div>
+          </footer>
         </main>
       </div>
 
-      {/* Crop Modal */}
       {showCropModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Crop Image</h3>
-            <div className="flex justify-center mb-4">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-lg rounded-2xl bg-white p-6">
+            <h3 className="mb-4 text-lg font-semibold text-gray-900">Crop Image</h3>
+            <div className="mb-4 flex justify-center">
               <ReactCrop
                 crop={crop}
                 onChange={(c) => setCrop(c)}
@@ -613,15 +760,18 @@ export default function ProfilePage() {
             </div>
             <div className="flex justify-end gap-3">
               <button
-                onClick={() => { setShowCropModal(false); setImageSrc(null); }}
-                className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition"
+                onClick={() => {
+                  setShowCropModal(false);
+                  setImageSrc(null);
+                }}
+                className="rounded-lg px-4 py-2 text-gray-700 transition hover:bg-gray-100"
               >
                 Cancel
               </button>
               <button
                 onClick={handleCropComplete}
                 disabled={saving}
-                className={btnClass}
+                className={primaryBtnClass}
               >
                 {saving ? 'Saving...' : 'Save'}
               </button>
@@ -631,12 +781,23 @@ export default function ProfilePage() {
       )}
 
       <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@700;800&display=swap');
+
         @keyframes fadeIn {
           from { opacity: 0; transform: translateY(10px); }
           to { opacity: 1; transform: translateY(0); }
         }
+
         .animate-fadeIn {
           animation: fadeIn 0.3s ease-out;
+        }
+
+        .font-headline {
+          font-family: 'Manrope', sans-serif;
+        }
+
+        .font-body {
+          font-family: 'Inter', sans-serif;
         }
       `}</style>
     </div>
